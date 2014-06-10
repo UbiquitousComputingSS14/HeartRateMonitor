@@ -11,18 +11,31 @@ namespace hrm
         setupUi(this);
 
         plotBroadband = new minotaur::MouseMonitorPlot();
-        plotBroadband->init(Qt::blue, "Broadband", "", "");
+        plotBroadband->init(Qt::blue, "Broadband", "Sample", "Sensor Data");
         graphLayout->layout()->addWidget(plotBroadband);
 
         plotIr = new minotaur::MouseMonitorPlot();
-        plotIr->init(Qt::red, "IR", "", "");
+        plotIr->init(Qt::red, "IR", "Sample", "Sensor Data");
         graphLayout->layout()->addWidget(plotIr);
+
+        console = new hrmConsole();
+        mainLayout->layout()->addWidget(console);
 
         serial = new QSerialPort(this);
 
         connect(serial, SIGNAL(readyRead()), this, SLOT(readData()));
         connect(serial, SIGNAL(error(QSerialPort::SerialPortError)), this,
                 SLOT(handleError(QSerialPort::SerialPortError)));
+
+        actionConnect->setEnabled(true);
+        actionDisconnect->setEnabled(false);
+
+        connect(actionConnect, SIGNAL(triggered()), this, SLOT(openSerialPort()));
+        connect(actionDisconnect, SIGNAL(triggered()), this, SLOT(closeSerialPort()));
+
+        statusbar->showMessage(tr("Disconnected"));
+
+        connect(getSettingsBtn, SIGNAL(clicked()), this, SLOT(getSettings()));
 
         // Init default settings
         settings.portName = "/dev/ttyACM0";
@@ -31,14 +44,16 @@ namespace hrm
         settings.parity = QSerialPort::NoParity;
         settings.stopBits = QSerialPort::OneStop;
         settings.flowControl = QSerialPort::NoFlowControl;
-
-        openSerialPort();
     }
 
     hrmMainWindow::~hrmMainWindow()
     {
+        closeSerialPort();
+
         delete plotBroadband;
         delete plotIr;
+        delete serial;
+        delete console;
     }
 
     void hrmMainWindow::writeData(const QByteArray &data)
@@ -52,13 +67,28 @@ namespace hrm
             QByteArray data = serial->readLine();
             QList<QByteArray> dataWords = data.split(' ');
 
-            console->append(data.trimmed());
+            console->print(data);
 
-            if (dataWords.size() == 4) {
-                if (dataWords[0] == "broadband" && dataWords[2] == "ir") {
-                    plotBroadband->updatePlot(dataWords[1].toDouble());
+            data = data.trimmed();
 
-                    plotIr->updatePlot(dataWords[3].trimmed().toDouble());
+            if (dataWords.size() >= 1) {
+                if (dataWords[0] == "data:") {
+                    if (dataWords.size() != 5)
+                        return;
+
+                    if (dataWords[1] == "broadband" && dataWords[3] == "ir") {
+                        plotBroadband->updatePlot(dataWords[2].toDouble());
+                        plotIr->updatePlot(dataWords[4].trimmed().toDouble());
+                    }
+                } else if (dataWords[0] == "settings:") {
+                    if (dataWords.size() != 11)
+                        return;
+
+                    sensorEdit->setText(dataWords[2]);
+                    idEdit->setText(dataWords[4]);
+                    maxValEdit->setText(dataWords[6]);
+                    minValEdit->setText(dataWords[8]);
+                    resolutionEdit->setText(dataWords[10]);
                 }
             }
         }
@@ -74,9 +104,10 @@ namespace hrm
         serial->setFlowControl(settings.flowControl);
 
         if (serial->open(QIODevice::ReadWrite)) {
-            //QMessageBox::information(this, tr("Info"), tr("Opened serial port."));
+            statusbar->showMessage(tr("Connected"));
 
-            console->append("Opened serial port\n");
+            actionConnect->setEnabled(false);
+            actionDisconnect->setEnabled(true);
         } else {
             QMessageBox::critical(this, tr("Error"), serial->errorString());
         }
@@ -85,6 +116,20 @@ namespace hrm
     void hrmMainWindow::closeSerialPort()
     {
         serial->close();
+
+        actionConnect->setEnabled(true);
+        actionDisconnect->setEnabled(false);
+
+        statusbar->showMessage(tr("Disconnected"));
+    }
+
+    void hrmMainWindow::getSettings()
+    {
+        QString data = "get settings\n";
+
+        writeData(data.toLocal8Bit());
+
+        console->print(data);
     }
 
     void hrmMainWindow::handleError(QSerialPort::SerialPortError error)

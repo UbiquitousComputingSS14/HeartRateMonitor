@@ -9,12 +9,12 @@
 
 #include "ui_hrmMainWindow.h"
 #include "MouseMonitorPlot.h"
+#include "hrmConsole.h"
 
 namespace hrm
 {
 
-    struct serialPortSettings
-    {
+    struct serialPortSettings {
         QString portName;
         int baudrate;
         QSerialPort::DataBits dataBits;
@@ -30,16 +30,20 @@ namespace hrm
         private:
             minotaur::MouseMonitorPlot *plotBroadband;
             minotaur::MouseMonitorPlot *plotIr;
+
             QSerialPort *serial;
             serialPortSettings settings;
 
-            void openSerialPort();
-            void closeSerialPort();
+            hrmConsole *console;
+
             void writeData(const QByteArray &data);
 
         private slots:
             void readData();
             void handleError(QSerialPort::SerialPortError error);
+            void openSerialPort();
+            void closeSerialPort();
+            void getSettings();
 
         public:
             hrmMainWindow(QWidget *parent = 0);

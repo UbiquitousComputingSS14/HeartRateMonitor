@@ -9,7 +9,8 @@ find_package(Qwt REQUIRED)
 file(GLOB_RECURSE hrm_SOURCES "src/*.cpp")
 
 file(GLOB_RECURSE hrm_moc_HEADERS "src/*.h")
-file(GLOB_RECURSE hrm_ui_HEADERS "ui/*.ui")
+file(GLOB_RECURSE hrm_ui_FORMS "ui/*.ui")
+file(GLOB_RECURSE hrm_qrc_RESOURCES "res/*.qrc")
 
 include_directories("include")
 include_directories("src")
@@ -18,10 +19,11 @@ include_directories(${QWT_INCLUDE_DIR})
 
 # Qt stuff
 QT4_WRAP_CPP(hrm_moc_SOURCES ${hrm_moc_HEADERS})
-QT4_WRAP_UI(hrm_ui_SOURCES ${hrm_ui_HEADERS})
+QT4_WRAP_UI(hrm_ui_SOURCES ${hrm_ui_FORMS})
+QT4_ADD_RESOURCES(hrm_qrc_SOURCES ${hrm_qrc_RESOURCES})
 
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-add_executable(hrm ${hrm_SOURCES} ${hrm_moc_SOURCES} ${hrm_ui_SOURCES})
+add_executable(hrm ${hrm_SOURCES} ${hrm_moc_SOURCES} ${hrm_ui_SOURCES} ${hrm_qrc_SOURCES})
 target_link_libraries(hrm ${QT_LIBRARIES} ${QWT_LIBRARY} QtSerialPort)

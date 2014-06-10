@@ -1,3 +1,8 @@
+/**
+ * This plot class is from the Smart-Minotaur project.
+ * @author JeGa
+ */
+
 #ifndef MOUSE_MONITOR_PLOT_H
 #define MOUSE_MONITOR_PLOT_H
 
