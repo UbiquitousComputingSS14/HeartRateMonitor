@@ -16,6 +16,8 @@ namespace minotaur
         yStep = DEFAULT_Y_STEP;
         maxSize = DEFAULT_MAX_SIZE;
 
+        //curve.setCurveAttribute(QwtPlotCurve::Fitted);
+
         curve.setPen(color);
         curve.setSamples(xData, yData);
         curve.attach(this);

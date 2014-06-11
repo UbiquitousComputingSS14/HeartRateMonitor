@@ -13,6 +13,9 @@ namespace hrm
         p.setColor(QPalette::Base, Qt::black);
         p.setColor(QPalette::Text, Qt::white);
         setPalette(p);
+
+        setReadOnly(true);
+        setTextInteractionFlags(Qt::NoTextInteraction);
     }
 
     hrmConsole::~hrmConsole()

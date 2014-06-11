@@ -36,6 +36,7 @@ namespace hrm
         statusbar->showMessage(tr("Disconnected"));
 
         connect(getSettingsBtn, SIGNAL(clicked()), this, SLOT(getSettings()));
+        connect(setSampleIntervalBtn, SIGNAL(clicked()), this, SLOT(setSampleInterval()));
 
         // Init default settings
         settings.portName = "/dev/ttyACM0";
@@ -81,7 +82,7 @@ namespace hrm
                         plotIr->updatePlot(dataWords[4].trimmed().toDouble());
                     }
                 } else if (dataWords[0] == "settings:") {
-                    if (dataWords.size() != 11)
+                    if (dataWords.size() != 14)
                         return;
 
                     sensorEdit->setText(dataWords[2]);
@@ -89,6 +90,7 @@ namespace hrm
                     maxValEdit->setText(dataWords[6]);
                     minValEdit->setText(dataWords[8]);
                     resolutionEdit->setText(dataWords[10]);
+                    sampleIntervalEdit->setText(dataWords[12]);
                 }
             }
         }
@@ -126,6 +128,15 @@ namespace hrm
     void hrmMainWindow::getSettings()
     {
         QString data = "get settings\n";
+
+        writeData(data.toLocal8Bit());
+
+        console->print(data);
+    }
+
+    void hrmMainWindow::setSampleInterval()
+    {
+        QString data = "set sampleInterval " + setSampleIntervalEdit->text() + "\n";
 
         writeData(data.toLocal8Bit());
 

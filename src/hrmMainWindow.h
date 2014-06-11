@@ -44,6 +44,7 @@ namespace hrm
             void openSerialPort();
             void closeSerialPort();
             void getSettings();
+            void setSampleInterval();
 
         public:
             hrmMainWindow(QWidget *parent = 0);
