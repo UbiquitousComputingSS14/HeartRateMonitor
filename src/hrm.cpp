@@ -1,8 +1,8 @@
-#include "hrmMainWindow.h"
+#include "MainWindow.h"
 
 int main(int argc, char **argv) {
     QApplication app(argc, argv);
-    hrm::hrmMainWindow hrm;
+    hrm::MainWindow hrm;
 
     hrm.show();
 

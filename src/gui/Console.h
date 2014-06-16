@@ -7,13 +7,13 @@
 namespace hrm
 {
 
-    class hrmConsole : public QPlainTextEdit
+    class Console : public QPlainTextEdit
     {
             Q_OBJECT
 
         public:
-            hrmConsole(QWidget *parent = 0);
-            virtual ~hrmConsole();
+            Console(QWidget *parent = 0);
+            virtual ~Console();
 
             void print(const QString &string);
     };

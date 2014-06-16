@@ -1,11 +1,11 @@
-#include "hrmConsole.h"
+#include "Console.h"
 
 #include <QScrollBar>
 
 namespace hrm
 {
 
-    hrmConsole::hrmConsole(QWidget *parent) :
+    Console::Console(QWidget *parent) :
         QPlainTextEdit(parent)
     {
         document()->setMaximumBlockCount(100);
@@ -18,11 +18,11 @@ namespace hrm
         setTextInteractionFlags(Qt::NoTextInteraction);
     }
 
-    hrmConsole::~hrmConsole()
+    Console::~Console()
     {
     }
 
-    void hrmConsole::print(const QString &string)
+    void Console::print(const QString &string)
     {
         insertPlainText(string);
 
