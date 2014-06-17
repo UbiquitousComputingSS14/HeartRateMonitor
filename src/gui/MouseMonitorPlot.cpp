@@ -1,8 +1,6 @@
 #include "MouseMonitorPlot.h"
 
-#define DEFAULT_X_STEP 50
-#define DEFAULT_Y_STEP 1000
-#define DEFAULT_MAX_SIZE 400
+#define DEFAULT_MAX_SIZE 500
 
 namespace minotaur
 {
@@ -10,22 +8,24 @@ namespace minotaur
     void MouseMonitorPlot::init(QColor color,
                                 std::string title,
                                 std::string xAxisTitle,
-                                std::string yAxisTitle)
+                                std::string yAxisTitle,
+                                PLOT_TYPE type)
     {
-        xStep = DEFAULT_X_STEP;
-        yStep = DEFAULT_Y_STEP;
-        maxSize = DEFAULT_MAX_SIZE;
 
-        //curve.setCurveAttribute(QwtPlotCurve::Fitted);
+        maxSize = DEFAULT_MAX_SIZE;
+        xStep = maxSize * 0.10;
+        this->type = type;
 
         curve.setPen(color);
         curve.setSamples(xData, yData);
         curve.attach(this);
 
         setTitle(QString(title.c_str()));
-        setAxisScale(QwtPlot::xBottom, 0, maxSize, xStep);
         setAxisTitle(QwtPlot::xBottom, QString(xAxisTitle.c_str()));
         setAxisTitle(QwtPlot::yLeft, QString(yAxisTitle.c_str()));
+
+        if (type == LIMITED)
+            setAxisScale(QwtPlot::xBottom, 0, maxSize, xStep);
     }
 
     void MouseMonitorPlot::updatePlot(double data)
@@ -35,10 +35,26 @@ namespace minotaur
 
         curve.setSamples(xData, yData);
 
-        if (xData.size() == maxSize) {
+        if (type == LIMITED && xData.size() == maxSize) {
             xData.clear();
             yData.clear();
         }
+
+        replot();
+    }
+
+    void MouseMonitorPlot::setLimit(int limit)
+    {
+        maxSize = limit;
+        xStep = maxSize * 0.15;
+
+        setAxisScale(QwtPlot::xBottom, 0, maxSize, xStep);
+    }
+
+    void MouseMonitorPlot::clear()
+    {
+        xData.clear();
+        yData.clear();
 
         replot();
     }

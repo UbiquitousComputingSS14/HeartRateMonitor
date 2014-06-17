@@ -1,6 +1,8 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
+#include <stdint.h>
+
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 #include <QString>
@@ -33,8 +35,7 @@ namespace hrm
     /**
      * The data that can be received over serial.
      */
-    struct SensorSettings
-    {
+    struct SensorSettings {
         QString sensor;
         QString id;
         QString max;
@@ -43,8 +44,7 @@ namespace hrm
         QString sampleInterval;
     };
 
-    struct SensorData
-    {
+    struct SensorData {
         uint16_t broadband;
         uint16_t ir;
     };
@@ -63,6 +63,8 @@ namespace hrm
 
         signals:
             void receiveLine(QString data);
+            void receiveSensorData(SensorData data);
+            void receiveSensorSettings(SensorSettings settings);
 
         public:
             Serial(QObject *parent = 0);

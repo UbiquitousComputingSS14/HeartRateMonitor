@@ -14,6 +14,8 @@
 namespace minotaur
 {
 
+    enum PLOT_TYPE {LIMITED, NO_LIMIT};
+
     class MouseMonitorPlot : public QwtPlot
     {
             Q_OBJECT
@@ -25,11 +27,12 @@ namespace minotaur
             QVector<double> yData;
 
             int xStep;
-            int yStep;
             int maxSize;
 
             std::string xAxisTitle;
             std::string yAxisTitle;
+
+            PLOT_TYPE type;
 
         public:
             MouseMonitorPlot(QwtPlot *parent = 0) : QwtPlot(parent) {}
@@ -38,8 +41,11 @@ namespace minotaur
             void init(QColor color,
                       std::string title,
                       std::string xAxisTitle,
-                      std::string yAxisTitle);
+                      std::string yAxisTitle,
+                      PLOT_TYPE type);
+            void setLimit(int limit);
             void updatePlot(double data);
+            void clear();
     };
 
 }

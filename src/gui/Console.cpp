@@ -24,7 +24,7 @@ namespace hrm
 
     void Console::print(const QString &string)
     {
-        insertPlainText(string);
+        insertPlainText(string + '\n');
 
         QScrollBar *bar = verticalScrollBar();
         bar->setValue(bar->maximum());

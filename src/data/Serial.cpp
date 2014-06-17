@@ -34,19 +34,17 @@ namespace hrm
     {
         QList<QString> dataWords = line.split(' ');
 
-        if (dataWords.size() >= 1)
-        {
+        if (dataWords.size() >= 1) {
             if (dataWords[0] == "data:") {
                 if (dataWords.size() != 5)
                     return;
 
                 if (dataWords[1] == "broadband" && dataWords[3] == "ir") {
-
                     SensorData data;
-                    data.broadband = dataWords[2].trimmed().toUShort()
+                    data.broadband = dataWords[2].trimmed().toUShort();
                     data.ir = dataWords[4].trimmed().toUShort();
 
-                    // Q_EMIT receiveData(data);
+                    Q_EMIT receiveSensorData(data);
                 }
             } else if (dataWords[0] == "settings:") {
                 if (dataWords.size() != 14)
@@ -54,14 +52,14 @@ namespace hrm
 
                 SensorSettings settings;
 
-                settings.sensor(dataWords[2]);
-                settings.id(dataWords[4]);
-                settings.max(dataWords[6]);
-                settings.min(dataWords[8]);
-                settings.resolution(dataWords[10]);
-                settings.sampleInterval(dataWords[12]);
+                settings.sensor = dataWords[2];
+                settings.id = dataWords[4];
+                settings.max = dataWords[6];
+                settings.min = dataWords[8];
+                settings.resolution = dataWords[10];
+                settings.sampleInterval = dataWords[12];
 
-                // Q_EMIT receiveSettings(settings)
+                Q_EMIT receiveSensorSettings(settings);
             }
         }
     }

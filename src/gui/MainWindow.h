@@ -4,11 +4,13 @@
 #include <QtGui/QMainWindow>
 #include <QWidget>
 #include <QString>
+#include <QQueue>
 
 #include "ui_MainWindow.h"
 #include "MouseMonitorPlot.h"
 #include "Console.h"
 #include "Serial.h"
+#include "FFT.h"
 
 namespace hrm
 {
@@ -20,6 +22,8 @@ namespace hrm
         private:
             minotaur::MouseMonitorPlot *plotBroadband;
             minotaur::MouseMonitorPlot *plotIr;
+            minotaur::MouseMonitorPlot *plotFrequencyIn;
+            minotaur::MouseMonitorPlot *plotFrequencyOut;
             Console *console;
 
             Serial *serial;
@@ -32,6 +36,8 @@ namespace hrm
 
         public slots:
             void receiveLine(QString line);
+            void receiveSensorData(SensorData data);
+            void receiveSensorSettings(SensorSettings settings);
 
         public:
             MainWindow(QWidget *parent = 0);
