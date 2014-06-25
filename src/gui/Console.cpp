@@ -14,6 +14,8 @@ namespace hrm
         p.setColor(QPalette::Text, Qt::white);
         setPalette(p);
 
+        setMaximumHeight(200);
+
         setReadOnly(true);
         setTextInteractionFlags(Qt::NoTextInteraction);
     }

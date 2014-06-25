@@ -3,32 +3,14 @@
 #include <QMessageBox>
 #include <QList>
 
+#include <cmath>
+
 namespace hrm
 {
 
     MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     {
         setupUi(this);
-
-        plotBroadband = new minotaur::MouseMonitorPlot();
-        plotBroadband->init(Qt::blue, "Broadband", "Sample",
-                            "Sensor Data", minotaur::LIMITED);
-        graphLayout->layout()->addWidget(plotBroadband);
-
-        plotIr = new minotaur::MouseMonitorPlot();
-        plotIr->init(Qt::red, "IR", "Sample",
-                     "Sensor Data", minotaur::LIMITED);
-        graphLayout->layout()->addWidget(plotIr);
-
-        plotFrequencyIn = new minotaur::MouseMonitorPlot();
-        plotFrequencyIn->init(Qt::blue, "Discrete Function",
-                              "Time", "Value", minotaur::NO_LIMIT);
-        frequencyGraphLayout->layout()->addWidget(plotFrequencyIn);
-
-        plotFrequencyOut = new minotaur::MouseMonitorPlot();
-        plotFrequencyOut->init(Qt::red, "Frequency Spectrum",
-                               "Frequency", "Magnitude", minotaur::NO_LIMIT);
-        frequencyGraphLayout->layout()->addWidget(plotFrequencyOut);
 
         console = new Console();
         mainLayout->layout()->addWidget(console);
@@ -38,6 +20,45 @@ namespace hrm
         actionConnect->setEnabled(true);
         actionDisconnect->setEnabled(false);
 
+        statusbar->showMessage(tr("Disconnected"));
+
+        initPlots();
+        initSignals();
+
+        plotFrequencyIn->setSticksStyle();
+        plotFrequencyIn->setLimit(fft.getN());
+
+        //plotFrequencyOut->setSticksStyle();
+    }
+
+    void MainWindow::initPlots()
+    {
+        plotBroadband = new minotaur::MouseMonitorPlot();
+        plotBroadband->init(Qt::blue, "Broadband", "Sample",
+                            "Sensor Data", "Broadband brightness", minotaur::LIMITED);
+        graphLayout->layout()->addWidget(plotBroadband);
+
+        plotIr = new minotaur::MouseMonitorPlot();
+        plotIr->init(Qt::red, "IR", "Sample",
+                     "Sensor Data", "IR Brightness", minotaur::LIMITED);
+        graphLayout->layout()->addWidget(plotIr);
+
+        plotFrequencyIn = new minotaur::MouseMonitorPlot();
+        plotFrequencyIn->init(Qt::blue, "Time Domain",
+                              "Time (k)", "Brightness", "Brightness", minotaur::LIMITED);
+        frequencyGraphLayout->layout()->addWidget(plotFrequencyIn);
+
+        plotFrequencyOut = new minotaur::MouseMonitorPlot();
+        plotFrequencyOut->init(Qt::black, "Frequency Spectrum",
+                               "Frequency (Hz)", "Amplitude", "Magnitude (polar coordinate)", minotaur::NO_LIMIT);
+        frequencyGraphLayout->layout()->addWidget(plotFrequencyOut);
+
+        plotFrequencyOut->addCurve("Real part", Qt::red);
+        plotFrequencyOut->addCurve("Imaginary part", Qt::green);
+    }
+
+    void MainWindow::initSignals()
+    {
         connect(actionConnect, SIGNAL(triggered()),
                 this, SLOT(openSerialPortClicked()));
         connect(actionDisconnect, SIGNAL(triggered()),
@@ -53,22 +74,6 @@ namespace hrm
                 this, SLOT(receiveSensorData(SensorData)));
         connect(serial, SIGNAL(receiveSensorSettings(SensorSettings)),
                 this, SLOT(receiveSensorSettings(SensorSettings)));
-
-        statusbar->showMessage(tr("Disconnected"));
-
-
-        FFT fft;
-        fft.computeFFT();
-
-        fftw_complex *in = fft.getIn();
-        for (int i = 0; i < 256; ++i) {
-            plotFrequencyIn->updatePlot(in[i][0]);
-        }
-
-        fftw_complex *out = fft.getOut();
-        for (int i = 0; i < 256; ++i) {
-            plotFrequencyOut->updatePlot(out[i][0]);
-        }
     }
 
     MainWindow::~MainWindow()
@@ -77,22 +82,64 @@ namespace hrm
 
         delete plotBroadband;
         delete plotIr;
+        delete plotFrequencyIn;
+        delete plotFrequencyOut;
         delete serial;
         delete console;
     }
 
     void MainWindow::receiveLine(QString line)
     {
-        /*plotBroadband->updatePlot();
-        plotIr->updatePlot();*/
     }
 
     void MainWindow::receiveSensorData(SensorData data)
     {
-        plotBroadband->updatePlot(data.broadband);
-        plotIr->updatePlot(data.ir);
+        QString str;
 
-        QString str = "Sensor> ";
+        QVector<double> dataVector;
+        dataVector.append(data.broadband);
+
+        plotBroadband->updatePlot(dataVector);
+        plotFrequencyIn->updatePlot(dataVector);
+
+        dataVector.clear();
+        dataVector.append(data.ir);
+        plotIr->updatePlot(dataVector);
+
+        str = QString::number(data.broadband);
+        timeDataEdit->append(str);
+
+        if (fft.addSample(data.broadband)) {
+            frequencyDataEdit->clear();
+            timeDataEdit->clear();
+            fftw_complex *data = fft.getOut();
+
+            plotFrequencyOut->clear();
+            // Start with 1 (no DC offset); TODO: DC offset problem?
+            for (int i = 1; i < fft.getN()/2 - 1; ++i) {
+
+                if (10.0*(i/64.0) < 0.5 || 10.0*(i/64.0) > 4) // TODO: (double) fft.getN()
+                    continue;
+
+                //    ;   ABS  ; 2*;
+                dataVector.clear();
+
+                // Complex value to magnitude
+                double scaledAmplReal = data[i][0]/fft.getN();
+                double scaledAmplImag = data[i][1]/fft.getN();
+                double magnitude = sqrt(pow(scaledAmplReal, 2) + pow(scaledAmplImag, 2));
+
+                dataVector.append(2*magnitude); // 2* because of + and - frequency
+                dataVector.append(data[i][0]/fft.getN());
+                dataVector.append(data[i][1]/fft.getN());
+                plotFrequencyOut->updatePlot(10.0*(i/64.0), dataVector); // TODO: (double) fft.getN()
+
+                str = QString::number(data[i][0]);
+                frequencyDataEdit->append(str);
+            }
+        }
+
+        str = "Sensor> ";
         str += "Broadband: " + QString::number(data.broadband)
                + " Ir: " + QString::number(data.ir);
 
@@ -107,6 +154,8 @@ namespace hrm
         minValEdit->setText(settings.min);
         sampleIntervalEdit->setText(settings.sampleInterval);
         resolutionEdit->setText(settings.resolution);
+
+        setSampleIntervalEdit->setText(settings.sampleInterval);
     }
 
     void MainWindow::openSerialPortClicked()

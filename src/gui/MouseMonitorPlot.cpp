@@ -9,16 +9,21 @@ namespace minotaur
                                 std::string title,
                                 std::string xAxisTitle,
                                 std::string yAxisTitle,
+                                std::string curveTitle,
                                 PLOT_TYPE type)
     {
-
         maxSize = DEFAULT_MAX_SIZE;
         xStep = maxSize * 0.10;
         this->type = type;
 
-        curve.setPen(color);
-        curve.setSamples(xData, yData);
-        curve.attach(this);
+        legend = new QwtLegend(this);
+        this->insertLegend(legend);
+
+        auto cContainer = std::make_shared<CurveContainer>(curveTitle.c_str(), color);
+        cContainer->curve.setSamples(xData, cContainer->yData);
+        cContainer->curve.attach(this);
+
+        curves.append(cContainer);
 
         setTitle(QString(title.c_str()));
         setAxisTitle(QwtPlot::xBottom, QString(xAxisTitle.c_str()));
@@ -28,19 +33,37 @@ namespace minotaur
             setAxisScale(QwtPlot::xBottom, 0, maxSize, xStep);
     }
 
-    void MouseMonitorPlot::updatePlot(double data)
+    void MouseMonitorPlot::updatePlot(QVector<double> data)
     {
-        xData.append(xData.size());
-        yData.append(data);
+        updatePlot(xData.size(), data);
+    }
 
-        curve.setSamples(xData, yData);
+    void MouseMonitorPlot::updatePlot(double xIndex, QVector<double> data)
+    {
+        if (data.size() != curves.size())
+            return;
+
+        xData.append(xIndex);
+
+        for (int i = 0; i < data.size(); ++i) {
+            curves[i]->update(data.at(i));
+            curves[i]->curve.setSamples(xData, curves[i]->yData);
+        }
 
         if (type == LIMITED && xData.size() == maxSize) {
-            xData.clear();
-            yData.clear();
+            clear();
         }
 
         replot();
+    }
+
+    void MouseMonitorPlot::addCurve(QString curveTitle, QColor color)
+    {
+        auto cContainer = std::make_shared<CurveContainer>(curveTitle, color);
+        cContainer->curve.setSamples(xData, cContainer->yData);
+        cContainer->curve.attach(this);
+
+        curves.append(cContainer);
     }
 
     void MouseMonitorPlot::setLimit(int limit)
@@ -51,10 +74,35 @@ namespace minotaur
         setAxisScale(QwtPlot::xBottom, 0, maxSize, xStep);
     }
 
+    void MouseMonitorPlot::setSticksStyle()
+    {
+        for (int i = 0; i < curves.size(); ++i) {
+            curves[i]->curve.setStyle(QwtPlotCurve::CurveStyle::Sticks);
+            curves[i]->curve.setPen(QPen(curves[i]->curve.pen().color(), 1.0));
+        }
+    }
+
+    void MouseMonitorPlot::setDotStyle()
+    {
+        for (int i = 0; i < curves.size(); ++i) {
+            curves[i]->curve.setStyle(QwtPlotCurve::CurveStyle::Dots);
+            curves[i]->curve.setPen(QPen(curves[i]->curve.pen().color(), 3.0));
+        }
+    }
+
     void MouseMonitorPlot::clear()
     {
+        for (auto i : curves)
+            i->yData.clear();
         xData.clear();
-        yData.clear();
+
+        replot();
+    }
+
+    void MouseMonitorPlot::clearCurves()
+    {
+        curves.clear();
+        xData.clear();
 
         replot();
     }

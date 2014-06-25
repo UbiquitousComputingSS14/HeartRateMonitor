@@ -2,16 +2,21 @@
 
 #include <iostream>
 
-#define DEFAULT_SAMPLES 256
+#include <cmath>
+
+#define DEFAULT_SAMPLES 64
 
 namespace hrm
 {
 
-    FFT::FFT() : N(256)
+    FFT::FFT() : N(DEFAULT_SAMPLES), index(0)
     {
         in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
         out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
         plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_MEASURE);
+
+        N = DEFAULT_SAMPLES;
+        properties.numberOfSamples = DEFAULT_SAMPLES;
     }
 
     FFT::~FFT()
@@ -21,22 +26,35 @@ namespace hrm
         fftw_free(out);
     }
 
-    void FFT::computeFFT()//fftw_complex *in)
+    bool FFT::addSample(double sample)
     {
-        for (int i = 0; i < 256; ++i) {
-            if (i <= 80) {
-                in[i][0] = 0;
-                in[i][1] = 0;
-            } else if (i <= 160) {
-                in[i][0] = 1;
-                in[i][1] = 0;
-            } else {
-                in[i][0] = 0;
-                in[i][1] = 0;
-            }
+        in[index][0] = sample;
+        in[index][1] = 0;
+
+        ++index;
+
+        if (index == N) {
+            // Got enough sample, do DFT.
+
+            windowFunction();
+            fftw_execute(plan);
+            index = 0;
+
+            return true;
         }
 
-        fftw_execute(plan);
+        return false;
+    }
+
+    void FFT::windowFunction()
+    {
+        for (int i = 0; i < N; ++i) {
+            // Hamming-window
+            double windowValue = 0.54 - 0.46 * cos((2*M_PI*i)/N);
+
+            in[i][0] = in[i][0] * windowValue;
+            in[i][1] = in[i][1] * windowValue;
+        }
     }
 
     fftw_complex *FFT::getIn()
@@ -47,6 +65,15 @@ namespace hrm
     fftw_complex *FFT::getOut()
     {
         return out;
+    }
+
+    FFT_properties FFT::getProperties()
+    {
+        return properties;
+    }
+
+    int FFT::getN() {
+        return N;
     }
 
 }

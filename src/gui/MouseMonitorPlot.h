@@ -6,13 +6,32 @@
 #ifndef MOUSE_MONITOR_PLOT_H
 #define MOUSE_MONITOR_PLOT_H
 
+#include <memory>
+
 #include <qwt_plot_curve.h>
 #include <qwt_plot_layout.h>
 #include <qwt_plot.h>
+#include <qwt_legend.h>
 #include <QVector>
 
 namespace minotaur
 {
+
+    struct CurveContainer {
+        QwtPlotCurve curve;
+        QVector<double> yData;
+
+        CurveContainer(QString curveTitle, QColor color) : curve(curveTitle) {
+            curve.setPen(QPen(color, 1.0));
+        }
+
+        ~CurveContainer() {
+        }
+
+        void update(double data) {
+            yData.append(data);
+        }
+    };
 
     enum PLOT_TYPE {LIMITED, NO_LIMIT};
 
@@ -21,10 +40,8 @@ namespace minotaur
             Q_OBJECT
 
         private:
-            QwtPlotCurve curve;
-
+            QVector<std::shared_ptr<CurveContainer>> curves;
             QVector<double> xData;
-            QVector<double> yData;
 
             int xStep;
             int maxSize;
@@ -34,6 +51,8 @@ namespace minotaur
 
             PLOT_TYPE type;
 
+            QwtLegend *legend;
+
         public:
             MouseMonitorPlot(QwtPlot *parent = 0) : QwtPlot(parent) {}
             virtual ~MouseMonitorPlot() {}
@@ -42,10 +61,21 @@ namespace minotaur
                       std::string title,
                       std::string xAxisTitle,
                       std::string yAxisTitle,
+                      std::string curveTitle,
                       PLOT_TYPE type);
-            void setLimit(int limit);
-            void updatePlot(double data);
+
+            void updatePlot(QVector<double> data);
+            void updatePlot(double xIndex, QVector<double> data);
+
+            void clearCurves();
             void clear();
+
+            void setDotStyle();
+            void setSticksStyle();
+
+            void addCurve(QString curveTitle, QColor color);
+
+            void setLimit(int limit);
     };
 
 }

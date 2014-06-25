@@ -24,9 +24,14 @@ namespace hrm
             minotaur::MouseMonitorPlot *plotIr;
             minotaur::MouseMonitorPlot *plotFrequencyIn;
             minotaur::MouseMonitorPlot *plotFrequencyOut;
-            Console *console;
 
+            Console *console;
             Serial *serial;
+
+            FFT fft;
+
+            void initPlots();
+            void initSignals();
 
         private slots:
             void openSerialPortClicked();
