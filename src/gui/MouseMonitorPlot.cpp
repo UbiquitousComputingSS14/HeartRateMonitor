@@ -1,5 +1,7 @@
 #include "MouseMonitorPlot.h"
 
+#include <qwt_symbol.h>
+
 #define DEFAULT_MAX_SIZE 300
 
 namespace minotaur
@@ -66,6 +68,17 @@ namespace minotaur
         curves.append(cContainer);
     }
 
+    void MouseMonitorPlot::addMarker(double xPos, double yPos)
+    {
+        QwtSymbol *s = new QwtSymbol(QwtSymbol::Diamond, Qt::red, Qt::NoPen, QSize(10, 10));
+        marker = new QwtPlotMarker();
+
+        marker->setLabel(QwtText("Peak"));
+        marker->setSymbol(s);
+        marker->setValue(QPointF(xPos, yPos));
+        marker->attach(this);
+    }
+
     void MouseMonitorPlot::setLimit(int limit)
     {
         maxSize = limit;
@@ -95,6 +108,8 @@ namespace minotaur
         for (auto i : curves)
             i->yData.clear();
         xData.clear();
+
+        //TODO marker->detach();
 
         replot();
     }

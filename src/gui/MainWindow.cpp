@@ -126,6 +126,10 @@ namespace hrm
             int indexMax = fft.getPeak();
             displayPeak(indexMax, magnitude[indexMax]);
 
+            plotFrequencyOut->addMarker(
+                properties.sampleRate * ((double) indexMax / properties.numberOfSamples),
+                magnitude[indexMax]);
+
             // Plot
             for (int i = 1; i <= properties.numberOfSamples / 2; ++i) {
 

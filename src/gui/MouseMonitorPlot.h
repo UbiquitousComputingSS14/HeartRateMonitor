@@ -12,6 +12,7 @@
 #include <qwt_plot_layout.h>
 #include <qwt_plot.h>
 #include <qwt_legend.h>
+#include <qwt_plot_marker.h>
 #include <QVector>
 
 namespace minotaur
@@ -52,6 +53,7 @@ namespace minotaur
             PLOT_TYPE type;
 
             QwtLegend *legend;
+            QwtPlotMarker *marker;
 
         public:
             MouseMonitorPlot(QwtPlot *parent = 0) : QwtPlot(parent) {}
@@ -74,6 +76,8 @@ namespace minotaur
             void setSticksStyle();
 
             void addCurve(QString curveTitle, QColor color);
+
+            void addMarker(double xPos, double yPos);
 
             void setLimit(int limit);
     };
