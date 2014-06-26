@@ -25,10 +25,8 @@ namespace hrm
         initPlots();
         initSignals();
 
-        plotFrequencyIn->setSticksStyle();
-        plotFrequencyIn->setLimit(fft.getN());
-
-        //plotFrequencyOut->setSticksStyle();
+        //plotFrequencyIn->setSticksStyle();
+        plotFrequencyIn->setLimit(fft.getProperties().numberOfSamples);
     }
 
     void MainWindow::initPlots()
@@ -94,11 +92,15 @@ namespace hrm
 
     void MainWindow::receiveSensorData(SensorData data)
     {
+        if (!fft.status()) {
+            getSettingsClicked();
+            return;
+        }
+
         QString str;
 
         QVector<double> dataVector;
         dataVector.append(data.broadband);
-
         plotBroadband->updatePlot(dataVector);
         plotFrequencyIn->updatePlot(dataVector);
 
@@ -112,29 +114,36 @@ namespace hrm
         if (fft.addSample(data.broadband)) {
             frequencyDataEdit->clear();
             timeDataEdit->clear();
-            fftw_complex *data = fft.getOut();
-
             plotFrequencyOut->clear();
-            // Start with 1 (no DC offset); TODO: DC offset problem?
-            for (int i = 1; i < fft.getN()/2 - 1; ++i) {
 
-                if (10.0*(i/64.0) < 0.5 || 10.0*(i/64.0) > 4) // TODO: (double) fft.getN()
+            double *magnitude = fft.getMagnitude();
+            double *real = fft.getRealPart();
+            double *imaginary = fft.getImaginaryPart();
+
+            FFT_properties properties = fft.getProperties();
+
+            // Max peak
+            int indexMax = fft.getPeak();
+            displayPeak(indexMax, magnitude[indexMax]);
+
+            // Plot
+            for (int i = 1; i <= properties.numberOfSamples / 2; ++i) {
+
+                // Make that better
+                if (properties.sampleRate * (i / (double) properties.numberOfSamples) < MIN_PULSE_FREQUENCY ||
+                        properties.sampleRate * (i / (double) properties.numberOfSamples) > MAX_PULSE_FREQUENCY)
                     continue;
 
-                //    ;   ABS  ; 2*;
+
                 dataVector.clear();
 
-                // Complex value to magnitude
-                double scaledAmplReal = data[i][0]/fft.getN();
-                double scaledAmplImag = data[i][1]/fft.getN();
-                double magnitude = sqrt(pow(scaledAmplReal, 2) + pow(scaledAmplImag, 2));
+                dataVector.append(magnitude[i-1]);
+                dataVector.append(real[i-1]);
+                dataVector.append(imaginary[i-1]);
 
-                dataVector.append(2*magnitude); // 2* because of + and - frequency
-                dataVector.append(data[i][0]/fft.getN());
-                dataVector.append(data[i][1]/fft.getN());
-                plotFrequencyOut->updatePlot(10.0*(i/64.0), dataVector); // TODO: (double) fft.getN()
+                plotFrequencyOut->updatePlot(properties.sampleRate * ((double) i / properties.numberOfSamples), dataVector);
 
-                str = QString::number(data[i][0]);
+                str = QString::number(magnitude[i-1]);
                 frequencyDataEdit->append(str);
             }
         }
@@ -154,8 +163,15 @@ namespace hrm
         minValEdit->setText(settings.min);
         sampleIntervalEdit->setText(settings.sampleInterval);
         resolutionEdit->setText(settings.resolution);
-
         setSampleIntervalEdit->setText(settings.sampleInterval);
+
+        fft.setSampleInterval(settings.sampleInterval.toDouble());
+        FFT_properties properties = fft.getProperties();
+
+        fftSampleIntervalEdit->setText(QString::number(properties.sampleInterval));
+        fftSampleRateEdit->setText(QString::number(properties.sampleRate));
+        fftSamplesPerSegmentEdit->setText(QString::number(properties.numberOfSamples));
+        fftSegmentDurationEdit->setText(QString::number(properties.segmentDuration));
     }
 
     void MainWindow::openSerialPortClicked()
@@ -165,6 +181,8 @@ namespace hrm
 
             actionConnect->setEnabled(false);
             actionDisconnect->setEnabled(true);
+
+            getSettingsClicked();
         } else
             QMessageBox::critical(this, tr("Error"), serial->errorString());
     }
@@ -191,6 +209,21 @@ namespace hrm
         QString data = "set sampleInterval " + setSampleIntervalEdit->text();
         serial->sendData(data + "\n");
         console->print("> " + data);
+    }
+
+    void MainWindow::displayPeak(int indexMax, double max)
+    {
+        FFT_properties properties = fft.getProperties();
+
+        double fraction = indexMax / (double) properties.numberOfSamples;
+        double frequency = properties.sampleRate * fraction;
+        double bpm = frequency * 60;
+
+        peakIndexEdit->setText(QString::number(indexMax));
+        peakFractionEdit->setText(QString::number(fraction));
+        peakFrequencyEdit->setText(QString::number(frequency));
+        peakAmplitudeEdit->setText(QString::number(max));
+        peakBpmEdit->setText(QString::number(bpm));
     }
 
 }

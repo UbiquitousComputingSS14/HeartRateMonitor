@@ -1,6 +1,6 @@
 #include "MouseMonitorPlot.h"
 
-#define DEFAULT_MAX_SIZE 500
+#define DEFAULT_MAX_SIZE 300
 
 namespace minotaur
 {
