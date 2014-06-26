@@ -53,7 +53,7 @@ namespace minotaur
             PLOT_TYPE type;
 
             QwtLegend *legend;
-            QwtPlotMarker *marker;
+            QwtPlotMarker *marker = nullptr;
 
         public:
             MouseMonitorPlot(QwtPlot *parent = 0) : QwtPlot(parent) {}

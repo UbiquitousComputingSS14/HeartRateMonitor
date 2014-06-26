@@ -73,9 +73,11 @@ namespace minotaur
         QwtSymbol *s = new QwtSymbol(QwtSymbol::Diamond, Qt::red, Qt::NoPen, QSize(10, 10));
         marker = new QwtPlotMarker();
 
+        // TODO: s->setPinPoint( QPointF( 0.0, 0.0 ) );
         marker->setLabel(QwtText("Peak"));
         marker->setSymbol(s);
         marker->setValue(QPointF(xPos, yPos));
+        marker->setLabelAlignment(Qt::AlignRight);
         marker->attach(this);
     }
 
@@ -109,7 +111,8 @@ namespace minotaur
             i->yData.clear();
         xData.clear();
 
-        //TODO marker->detach();
+        if (marker != nullptr)
+            marker->detach();
 
         replot();
     }

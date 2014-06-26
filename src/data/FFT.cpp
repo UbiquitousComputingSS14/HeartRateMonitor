@@ -10,17 +10,24 @@ namespace hrm
     FFT::FFT() : index(0)
     {
         properties.numberOfSamples = DEFAULT_SAMPLES;
+        properties.zeroPaddingSamples = DEFAULT_ZERO_PADDING_SAMPLES;
 
-        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.numberOfSamples);
-        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.numberOfSamples);
-        plan = fftw_plan_dft_1d(properties.numberOfSamples, in, out, FFTW_FORWARD, FFTW_MEASURE);
+        int inputSize = properties.numberOfSamples;// TODO: + properties.zeroPaddingSamples;
+
+        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * inputSize);
+        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * inputSize);
+        plan = fftw_plan_dft_1d(inputSize, in, out, FFTW_FORWARD, FFTW_MEASURE);
+
+        //in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.numberOfSamples);
+        //out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.numberOfSamples);
+        //plan = fftw_plan_dft_1d(properties.numberOfSamples, in, out, FFTW_FORWARD, FFTW_MEASURE);
 
         // Without DC offset
-        int size = properties.numberOfSamples / 2;
+        int outputSize = properties.numberOfSamples / 2;
 
-        outMagnitude = new double[size];
-        outReal = new double[size];
-        outImaginary = new double[size];
+        outMagnitude = new double[outputSize];
+        outReal = new double[outputSize];
+        outImaginary = new double[outputSize];
     }
 
     FFT::~FFT()
@@ -36,6 +43,9 @@ namespace hrm
 
     bool FFT::addSample(double sample)
     {
+        // Because of the window function, the amplitude is not correct.
+        // Therefore -> amplitude correction
+        //in[index][0] = sin(2*M_PI*1.6*index*(0.07)); // TODO: (test)
         in[index][0] = sample;
         in[index][1] = 0;
 
@@ -45,6 +55,7 @@ namespace hrm
             // Got enough sample, do DFT.
 
             windowFunction();
+            zeroPad();
             fftw_execute(plan);
             scaleAndConvert();
             index = 0;
@@ -74,13 +85,23 @@ namespace hrm
         // Look only in the neede area.
         for (int i = 1; i <= N / 2; ++i) {
             // Complex value to magnitude
-            double scaledAmplReal = out[i][0] / N;
-            double scaledAmplImag = out[i][1] / N;
-            double magnitude = 2 *(sqrt(pow(scaledAmplReal, 2) + pow(scaledAmplImag, 2)));
+            double scaledAmplReal = 2 * out[i][0] / N;
+            double scaledAmplImag = 2 * out[i][1] / N;
+            double magnitude = (sqrt(pow(scaledAmplReal, 2) + pow(scaledAmplImag, 2)));
 
-            outReal[i-1] = 2 * out[i][0] / N;
-            outImaginary[i-1] = 2 * out[i][1] / N;
+            outReal[i-1] = scaledAmplReal;
+            outImaginary[i-1] = scaledAmplImag;
             outMagnitude[i-1] = magnitude;
+        }
+    }
+
+    void FFT::zeroPad()
+    {
+        for (int i = 0; i < properties.zeroPaddingSamples; ++i) {
+            in[index][0] = 0;
+            in[index][1] = 0;
+
+            ++index;
         }
     }
 
@@ -99,6 +120,7 @@ namespace hrm
         properties.sampleInterval = sampleInterval;
         properties.sampleRate = 1.0 / (sampleInterval / 1000);
         properties.segmentDuration = properties.numberOfSamples * sampleInterval;
+        properties.frequencyResolution = properties.sampleRate / properties.numberOfSamples;
     }
 
     int FFT::getPeak()

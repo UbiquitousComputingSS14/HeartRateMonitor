@@ -176,6 +176,9 @@ namespace hrm
         fftSampleRateEdit->setText(QString::number(properties.sampleRate));
         fftSamplesPerSegmentEdit->setText(QString::number(properties.numberOfSamples));
         fftSegmentDurationEdit->setText(QString::number(properties.segmentDuration));
+        fftFrequencyResolutionEdit->setText(
+            QString(QString::number(properties.frequencyResolution) +
+                    " (" + QString::number(properties.frequencyResolution * 60) + " bpm)"));
     }
 
     void MainWindow::openSerialPortClicked()

@@ -5,6 +5,7 @@
 
 // power of 2
 #define DEFAULT_SAMPLES 128
+#define DEFAULT_ZERO_PADDING_SAMPLES 10
 
 #define MIN_PULSE_FREQUENCY 0.5
 #define MAX_PULSE_FREQUENCY 4.0
@@ -14,10 +15,14 @@ namespace hrm
 
     struct FFT_properties
     {
+        int numberOfSamples = 0; // N
+        int zeroPaddingSamples = 0;
+
         double sampleInterval = 0.0; // delta x
         double sampleRate = 0.0; // Hz
-        int numberOfSamples = 0; // N
+
         double segmentDuration = 0.0; // ms
+        double frequencyResolution = 0.0; // Hz
     };
 
     class FFT
@@ -46,9 +51,15 @@ namespace hrm
             /**
              * Scales the frequency values to represent the correct
              * amplitude and converts the rectangular data to polar
-             * coordinates.
+             * coordinates. (+ and - frequency because of the complex
+             * fft, [comparison to real fft]).
              */
             void scaleAndConvert();
+
+            /**
+             * Does NOT give more information.
+             */
+            void zeroPad();
 
         public:
             FFT();
