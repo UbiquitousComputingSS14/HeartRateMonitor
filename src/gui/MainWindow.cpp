@@ -131,12 +131,9 @@ namespace hrm
 
             // Plot
             for (int i = 1; i <= properties.totalSamples / 2; ++i) {
-
-                // Make that better
-                if (properties.sampleRate * (i / (double) properties.totalSamples) < MIN_PULSE_FREQUENCY ||
-                        properties.sampleRate * (i / (double) properties.totalSamples) > MAX_PULSE_FREQUENCY)
+                if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
+                        fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
                     continue;
-
 
                 dataVector.clear();
 
@@ -144,7 +141,7 @@ namespace hrm
                 dataVector.append(real[i-1]);
                 dataVector.append(imaginary[i-1]);
 
-                plotFrequencyOut->updatePlot(properties.sampleRate * ((double) i / properties.totalSamples), dataVector);
+                plotFrequencyOut->updatePlot(fft.indexToFrequency(i), dataVector);
 
                 str = QString::number(magnitude[i-1]);
                 frequencyDataEdit->append(str);

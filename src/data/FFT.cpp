@@ -168,7 +168,6 @@ namespace hrm
     int FFT::getPeak()
     {
         int N = properties.totalSamples;
-        int sampleRate = properties.sampleRate;
 
         if (!calculated)
             return -1;
@@ -177,8 +176,8 @@ namespace hrm
         int indexMax = 0;
 
         for (int i = 1; i <= N / 2; ++i) {
-            if (sampleRate * (i / (double) N) < MIN_PULSE_FREQUENCY ||
-                    sampleRate * (i / (double) N) > MAX_PULSE_FREQUENCY)
+            if (indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
+                    indexToFrequency(i) > MAX_PULSE_FREQUENCY)
                 continue;
 
             if (outMagnitude[i-1] > max) {
@@ -195,6 +194,11 @@ namespace hrm
         if (properties.sampleInterval == 0.0 || properties.sampleRate == 0.0)
             return false;
         return true;
+    }
+
+    double FFT::indexToFrequency(int i)
+    {
+        return properties.sampleRate * (i / (double) properties.totalSamples);
     }
 
     double *FFT::getMagnitude()

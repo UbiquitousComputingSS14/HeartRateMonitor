@@ -4,7 +4,7 @@
 #include <fftw3.h>
 
 // power of 2
-#define DEFAULT_SAMPLES 256
+#define DEFAULT_SAMPLES 128
 #define DEFAULT_ZERO_PADDING_SAMPLES (3*DEFAULT_SAMPLES)
 
 #define MIN_PULSE_FREQUENCY 0.7
@@ -106,6 +106,8 @@ namespace hrm
              * This means it is (N/2) long.
              */
             double *getImaginaryPart();
+
+            double indexToFrequency(int i);
 
             FFT_properties getProperties();
     };

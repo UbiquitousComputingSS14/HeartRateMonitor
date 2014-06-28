@@ -70,10 +70,10 @@ namespace minotaur
 
     void MouseMonitorPlot::addMarker(double xPos, double yPos)
     {
-        QwtSymbol *s = new QwtSymbol(QwtSymbol::Diamond, Qt::red, Qt::NoPen, QSize(10, 10));
+        QwtSymbol *s = new QwtSymbol(QwtSymbol::RTriangle, Qt::blue, Qt::NoPen, QSize(10, 10));
         marker = new QwtPlotMarker();
 
-        // TODO: s->setPinPoint( QPointF( 0.0, 0.0 ) );
+        //s->setPinPoint( QPointF( 0.0, 0.0 ) );
         marker->setLabel(QwtText("Peak"));
         marker->setSymbol(s);
         marker->setValue(QPointF(xPos, yPos));
