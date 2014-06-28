@@ -25,7 +25,6 @@ namespace hrm
         initPlots();
         initSignals();
 
-        //plotFrequencyIn->setSticksStyle();
         plotFrequencyIn->setLimit(fft.getProperties().numberOfSamples);
     }
 
@@ -127,15 +126,15 @@ namespace hrm
             displayPeak(indexMax, magnitude[indexMax]);
 
             plotFrequencyOut->addMarker(
-                properties.sampleRate * ((double) indexMax / properties.numberOfSamples),
+                properties.sampleRate * ((double) indexMax / properties.totalSamples),
                 magnitude[indexMax]);
 
             // Plot
-            for (int i = 1; i <= properties.numberOfSamples / 2; ++i) {
+            for (int i = 1; i <= properties.totalSamples / 2; ++i) {
 
                 // Make that better
-                if (properties.sampleRate * (i / (double) properties.numberOfSamples) < MIN_PULSE_FREQUENCY ||
-                        properties.sampleRate * (i / (double) properties.numberOfSamples) > MAX_PULSE_FREQUENCY)
+                if (properties.sampleRate * (i / (double) properties.totalSamples) < MIN_PULSE_FREQUENCY ||
+                        properties.sampleRate * (i / (double) properties.totalSamples) > MAX_PULSE_FREQUENCY)
                     continue;
 
 
@@ -145,7 +144,7 @@ namespace hrm
                 dataVector.append(real[i-1]);
                 dataVector.append(imaginary[i-1]);
 
-                plotFrequencyOut->updatePlot(properties.sampleRate * ((double) i / properties.numberOfSamples), dataVector);
+                plotFrequencyOut->updatePlot(properties.sampleRate * ((double) i / properties.totalSamples), dataVector);
 
                 str = QString::number(magnitude[i-1]);
                 frequencyDataEdit->append(str);
@@ -175,10 +174,20 @@ namespace hrm
         fftSampleIntervalEdit->setText(QString::number(properties.sampleInterval));
         fftSampleRateEdit->setText(QString::number(properties.sampleRate));
         fftSamplesPerSegmentEdit->setText(QString::number(properties.numberOfSamples));
+        fftZeroPaddingEdit->setText(QString::number(properties.zeroPaddingSamples));
         fftSegmentDurationEdit->setText(QString::number(properties.segmentDuration));
-        fftFrequencyResolutionEdit->setText(
-            QString(QString::number(properties.frequencyResolution) +
-                    " (" + QString::number(properties.frequencyResolution * 60) + " bpm)"));
+
+        QString str;
+
+        str = QString::number(properties.frequencyResolution) + " (" +
+              QString::number(properties.frequencyResolution * 60) + " bpm)";
+
+        fftFrequencyResolutionEdit->setText(str);
+
+        str = QString::number(properties.frequencyResolutionWithZeroPadding) + " (" +
+              QString::number(properties.frequencyResolutionWithZeroPadding * 60) + " bpm)";
+
+        fftFrequencyResolutionZPEdit->setText(str);
     }
 
     void MainWindow::openSerialPortClicked()
@@ -222,7 +231,7 @@ namespace hrm
     {
         FFT_properties properties = fft.getProperties();
 
-        double fraction = indexMax / (double) properties.numberOfSamples;
+        double fraction = indexMax / (double) properties.totalSamples;
         double frequency = properties.sampleRate * fraction;
         double bpm = frequency * 60;
 

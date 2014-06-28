@@ -4,25 +4,27 @@
 #include <fftw3.h>
 
 // power of 2
-#define DEFAULT_SAMPLES 128
-#define DEFAULT_ZERO_PADDING_SAMPLES 10
+#define DEFAULT_SAMPLES 256
+#define DEFAULT_ZERO_PADDING_SAMPLES (3*DEFAULT_SAMPLES)
 
-#define MIN_PULSE_FREQUENCY 0.5
-#define MAX_PULSE_FREQUENCY 4.0
+#define MIN_PULSE_FREQUENCY 0.7
+#define MAX_PULSE_FREQUENCY 3.9
 
 namespace hrm
 {
 
     struct FFT_properties
     {
-        int numberOfSamples = 0; // N
+        int numberOfSamples = 0;
         int zeroPaddingSamples = 0;
+        int totalSamples = 0; // N
 
         double sampleInterval = 0.0; // delta x
         double sampleRate = 0.0; // Hz
 
         double segmentDuration = 0.0; // ms
         double frequencyResolution = 0.0; // Hz
+        double frequencyResolutionWithZeroPadding = 0.0; // Hz
     };
 
     class FFT
@@ -60,6 +62,8 @@ namespace hrm
              * Does NOT give more information.
              */
             void zeroPad();
+
+            void filter();
 
         public:
             FFT();

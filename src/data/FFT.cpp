@@ -4,6 +4,12 @@
 #include <cmath>
 #include <limits>
 
+// Filter properties
+#define NZEROS 4
+#define NPOLES 4
+#define GAIN 4.049209435e+00
+static float xv[NZEROS+1], yv[NPOLES+1];
+
 namespace hrm
 {
 
@@ -11,19 +17,14 @@ namespace hrm
     {
         properties.numberOfSamples = DEFAULT_SAMPLES;
         properties.zeroPaddingSamples = DEFAULT_ZERO_PADDING_SAMPLES;
+        properties.totalSamples = properties.numberOfSamples + properties.zeroPaddingSamples;
 
-        int inputSize = properties.numberOfSamples;// TODO: + properties.zeroPaddingSamples;
-
-        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * inputSize);
-        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * inputSize);
-        plan = fftw_plan_dft_1d(inputSize, in, out, FFTW_FORWARD, FFTW_MEASURE);
-
-        //in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.numberOfSamples);
-        //out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.numberOfSamples);
-        //plan = fftw_plan_dft_1d(properties.numberOfSamples, in, out, FFTW_FORWARD, FFTW_MEASURE);
+        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.totalSamples);
+        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.totalSamples);
+        plan = fftw_plan_dft_1d(properties.totalSamples, in, out, FFTW_FORWARD, FFTW_MEASURE);
 
         // Without DC offset
-        int outputSize = properties.numberOfSamples / 2;
+        int outputSize = properties.totalSamples / 2;
 
         outMagnitude = new double[outputSize];
         outReal = new double[outputSize];
@@ -45,7 +46,9 @@ namespace hrm
     {
         // Because of the window function, the amplitude is not correct.
         // Therefore -> amplitude correction
-        //in[index][0] = sin(2*M_PI*1.6*index*(0.07)); // TODO: (test)
+
+        //in[index][0] = sin(2*M_PI*0.1*index*(0.07)); // TODO: (test)
+
         in[index][0] = sample;
         in[index][1] = 0;
 
@@ -55,9 +58,13 @@ namespace hrm
             // Got enough sample, do DFT.
 
             windowFunction();
+            filter();
             zeroPad();
+
             fftw_execute(plan);
+
             scaleAndConvert();
+
             index = 0;
             calculated = true;
 
@@ -80,7 +87,7 @@ namespace hrm
 
     void FFT::scaleAndConvert()
     {
-        int N = properties.numberOfSamples;
+        int N = properties.totalSamples;
 
         // Look only in the neede area.
         for (int i = 1; i <= N / 2; ++i) {
@@ -98,10 +105,44 @@ namespace hrm
     void FFT::zeroPad()
     {
         for (int i = 0; i < properties.zeroPaddingSamples; ++i) {
-            in[index][0] = 0;
-            in[index][1] = 0;
+            in[index][0] = 0.0;
+            in[index][1] = 0.0;
 
             ++index;
+        }
+    }
+
+    /**
+     * Butterworth bandpass filter.
+     * (http://www-users.cs.york.ac.uk/~fisher/mkfilter/)
+     *
+     *
+        filtertype	 =	 Butterworth
+        passtype	 =	 Bandpass
+        ripple	 =
+        order	 =	 2
+        samplerate	 =	 14.2857
+        corner1	 =	 0.7
+        corner2	 =	 3.9
+        adzero	 =
+        logmin	 =
+     */
+    void FFT::filter()
+    {
+        for (int i = 0; i <= properties.numberOfSamples - 1; ++i) {
+            xv[0] = xv[1];
+            xv[1] = xv[2];
+            xv[2] = xv[3];
+            xv[3] = xv[4];
+            xv[4] = in[i][0] / GAIN;
+            yv[0] = yv[1];
+            yv[1] = yv[2];
+            yv[2] = yv[3];
+            yv[3] = yv[4];
+            yv[4] =   (xv[0] + xv[4]) - 2 * xv[2]
+                      + ( -0.1780696557 * yv[0]) + (  0.3811166788 * yv[1])
+                      + ( -0.8547109645 * yv[2]) + (  1.5249217255 * yv[3]);
+            in[i][0] = yv[4];
         }
     }
 
@@ -121,11 +162,12 @@ namespace hrm
         properties.sampleRate = 1.0 / (sampleInterval / 1000);
         properties.segmentDuration = properties.numberOfSamples * sampleInterval;
         properties.frequencyResolution = properties.sampleRate / properties.numberOfSamples;
+        properties.frequencyResolutionWithZeroPadding = properties.sampleRate / properties.totalSamples;
     }
 
     int FFT::getPeak()
     {
-        int N = properties.numberOfSamples;
+        int N = properties.totalSamples;
         int sampleRate = properties.sampleRate;
 
         if (!calculated)
