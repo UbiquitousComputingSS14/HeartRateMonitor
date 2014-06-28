@@ -131,9 +131,9 @@ namespace hrm
 
             // Plot
             for (int i = 1; i <= properties.totalSamples / 2; ++i) {
-                if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
+                /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
                         fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
-                    continue;
+                    continue;*/
 
                 dataVector.clear();
 
@@ -222,6 +222,8 @@ namespace hrm
         QString data = "set sampleInterval " + setSampleIntervalEdit->text();
         serial->sendData(data + "\n");
         console->print("> " + data);
+
+        getSettingsClicked();
     }
 
     void MainWindow::displayPeak(int indexMax, double max)

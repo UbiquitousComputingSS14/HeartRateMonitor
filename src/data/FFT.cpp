@@ -7,7 +7,7 @@
 // Filter properties
 #define NZEROS 4
 #define NPOLES 4
-#define GAIN 4.049209435e+00
+#define GAIN 1.564354775e+00
 static float xv[NZEROS+1], yv[NPOLES+1];
 
 namespace hrm
@@ -116,12 +116,11 @@ namespace hrm
      * Butterworth bandpass filter.
      * (http://www-users.cs.york.ac.uk/~fisher/mkfilter/)
      *
-     *
         filtertype	 =	 Butterworth
         passtype	 =	 Bandpass
         ripple	 =
         order	 =	 2
-        samplerate	 =	 14.2857
+        samplerate	 =	 8
         corner1	 =	 0.7
         corner2	 =	 3.9
         adzero	 =
@@ -140,8 +139,8 @@ namespace hrm
             yv[2] = yv[3];
             yv[3] = yv[4];
             yv[4] =   (xv[0] + xv[4]) - 2 * xv[2]
-                      + ( -0.1780696557 * yv[0]) + (  0.3811166788 * yv[1])
-                      + ( -0.8547109645 * yv[2]) + (  1.5249217255 * yv[3]);
+                      + ( -0.4128015981 * yv[0]) + (  0.2397611203 * yv[1])
+                      + (  0.9889943457 * yv[2]) + ( -0.6474311512 * yv[3]);
             in[i][0] = yv[4];
         }
     }

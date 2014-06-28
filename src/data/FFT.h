@@ -4,8 +4,8 @@
 #include <fftw3.h>
 
 // power of 2
-#define DEFAULT_SAMPLES 128
-#define DEFAULT_ZERO_PADDING_SAMPLES (3*DEFAULT_SAMPLES)
+#define DEFAULT_SAMPLES 100
+#define DEFAULT_ZERO_PADDING_SAMPLES (4*DEFAULT_SAMPLES)
 
 #define MIN_PULSE_FREQUENCY 0.7
 #define MAX_PULSE_FREQUENCY 3.9
@@ -13,8 +13,7 @@
 namespace hrm
 {
 
-    struct FFT_properties
-    {
+    struct FFT_properties {
         int numberOfSamples = 0;
         int zeroPaddingSamples = 0;
         int totalSamples = 0; // N
