@@ -2,6 +2,7 @@
 
 #include <QMessageBox>
 #include <QList>
+#include <QTabWidget>
 
 #include <cmath>
 
@@ -43,15 +44,24 @@ namespace hrm
         plotFrequencyIn = new minotaur::MouseMonitorPlot();
         plotFrequencyIn->init(Qt::blue, "Time Domain",
                               "Time (k)", "Brightness", "Brightness", minotaur::LIMITED);
-        frequencyGraphLayout->layout()->addWidget(plotFrequencyIn);
+        tabEffective->layout()->addWidget(plotFrequencyIn);
+
+        plotFrequencyInPaddedData = new minotaur::MouseMonitorPlot();
+        plotFrequencyInPaddedData->init(Qt::blue, "Time Domain",
+                              "Time (k)", "Brightness", "Brightness", minotaur::LIMITED);
+        tabZeroPadded->layout()->addWidget(plotFrequencyInPaddedData);
 
         plotFrequencyOut = new minotaur::MouseMonitorPlot();
-        plotFrequencyOut->init(Qt::black, "Frequency Spectrum",
-                               "Frequency (Hz)", "Amplitude", "Magnitude (polar coordinate)", minotaur::NO_LIMIT);
-        frequencyGraphLayout->layout()->addWidget(plotFrequencyOut);
+        plotFrequencyOut->init(Qt::darkCyan, "Frequency Spectrum",
+                               "Frequency (Hz)", "Amplitude", "Magnitude", minotaur::NO_LIMIT);
+        tabMagnitude->layout()->addWidget(plotFrequencyOut);
 
-        plotFrequencyOut->addCurve("Real part", Qt::magenta);
-        plotFrequencyOut->addCurve("Imaginary part", Qt::green);
+        plotFrequencyOutComplexData = new minotaur::MouseMonitorPlot();
+        plotFrequencyOutComplexData->init(Qt::magenta, "Frequency Spectrum",
+                              "Frequency (Hz)", "Amplitude", "Real Part", minotaur::NO_LIMIT);
+        tabComplex->layout()->addWidget(plotFrequencyOutComplexData);
+
+        plotFrequencyOutComplexData->addCurve("Imaginary part", Qt::green);
     }
 
     void MainWindow::initSignals()
@@ -96,12 +106,10 @@ namespace hrm
             return;
         }
 
-        displayData(data);
-
         if (fft.addSample(data.broadband))
             displayFrequencies();
 
-        return;
+        displayData(data);
 
         QString str = "Sensor> ";
         str += "Broadband: " + QString::number(data.broadband)
@@ -133,6 +141,7 @@ namespace hrm
         frequencyDataEdit->clear();
         timeDataEdit->clear();
         plotFrequencyOut->clear();
+        plotFrequencyOutComplexData->clear();
 
         double *magnitude = fft.getMagnitude();
         double *real = fft.getRealPart();
@@ -149,17 +158,15 @@ namespace hrm
 
         // Plot
         for (int i = 1; i <= properties.totalSamples / 2; ++i) {
-            /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
-                    fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
-                continue;*/
-
             dataVector.clear();
 
             dataVector.append(magnitude[i-1]);
+            plotFrequencyOut->updatePlot(fft.indexToFrequency(i), dataVector);
+
+            dataVector.clear();
             dataVector.append(real[i-1]);
             dataVector.append(imaginary[i-1]);
-
-            plotFrequencyOut->updatePlot(fft.indexToFrequency(i), dataVector);
+            plotFrequencyOutComplexData->updatePlot(fft.indexToFrequency(i), dataVector);
 
             str = QString::number(magnitude[i-1]);
             frequencyDataEdit->append(str);

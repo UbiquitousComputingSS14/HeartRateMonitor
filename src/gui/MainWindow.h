@@ -22,8 +22,11 @@ namespace hrm
         private:
             minotaur::MouseMonitorPlot *plotBroadband;
             minotaur::MouseMonitorPlot *plotIr;
+
             minotaur::MouseMonitorPlot *plotFrequencyIn;
+            minotaur::MouseMonitorPlot *plotFrequencyInPaddedData;
             minotaur::MouseMonitorPlot *plotFrequencyOut;
+            minotaur::MouseMonitorPlot *plotFrequencyOutComplexData;
 
             Console *console;
             Serial *serial;

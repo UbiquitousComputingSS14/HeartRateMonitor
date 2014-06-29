@@ -56,8 +56,8 @@ namespace hrm
             // Got enough sample, do DFT.
 
             // Functions for input time domain.
-            windowFunction();
             filter();
+            windowFunction();
 
             fftw_execute(plan);
 
