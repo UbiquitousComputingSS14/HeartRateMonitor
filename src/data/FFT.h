@@ -1,6 +1,8 @@
 #ifndef FFT_H
 #define FFT_H
 
+#include "FFTBuffer.h"
+
 #include <fftw3.h>
 
 // power of 2
