@@ -1,12 +1,14 @@
 #ifndef FFT_H
 #define FFT_H
 
+#include <memory>
+
 #include "FFTBuffer.h"
 
 #include <fftw3.h>
 
 // power of 2
-#define DEFAULT_SAMPLES 100
+#define DEFAULT_SAMPLES 128
 #define DEFAULT_ZERO_PADDING_SAMPLES (4*DEFAULT_SAMPLES)
 
 #define MIN_PULSE_FREQUENCY 0.7
@@ -31,14 +33,10 @@ namespace hrm
     class FFT
     {
         private:
-            int index;
-
             FFT_properties properties;
 
             fftw_plan plan;
-
-            FFTBuffer buffer;
-            fftw_complex *in;
+            std::shared_ptr<FFTBuffer> buffer;
             fftw_complex *out;
 
             double *outMagnitude;
@@ -60,11 +58,6 @@ namespace hrm
              * fft, [comparison to real fft]).
              */
             void scaleAndConvert();
-
-            /**
-             * Does NOT give more information.
-             */
-            void zeroPad();
 
             /**
              * Butterworth bandpass filter.
@@ -103,7 +96,7 @@ namespace hrm
 
             int getPeak();
 
-            bool status();
+            bool ready();
 
             /**
              * @return The magnitude of the polar coordiantes without

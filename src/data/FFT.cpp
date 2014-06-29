@@ -13,18 +13,22 @@ static float xv[NZEROS+1], yv[NPOLES+1];
 namespace hrm
 {
 
-    FFT::FFT() : index(0), buffer(DEFAULT_SAMPLES, DEFAULT_SAMPLES / 2)
+    FFT::FFT()
     {
         properties.numberOfSamples = DEFAULT_SAMPLES;
         properties.zeroPaddingSamples = DEFAULT_ZERO_PADDING_SAMPLES;
         properties.totalSamples = properties.numberOfSamples + properties.zeroPaddingSamples;
 
-        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.totalSamples);
-        out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * properties.totalSamples);
-        plan = fftw_plan_dft_1d(properties.totalSamples, in, out, FFTW_FORWARD, FFTW_MEASURE);
+        buffer = std::make_shared<FFTBuffer>(
+            properties.numberOfSamples,
+            properties.zeroPaddingSamples,
+            10000);
 
-        // Without DC offset
-        int outputSize = properties.totalSamples / 2;
+        out = fftw_alloc_complex(buffer->totalSize());
+        plan = fftw_plan_dft_1d(buffer->totalSize(), buffer->get(), out, FFTW_FORWARD, FFTW_MEASURE);
+
+        // Without DC offset and only positive frequencies.
+        int outputSize = buffer->totalSize() / 2;
 
         outMagnitude = new double[outputSize];
         outReal = new double[outputSize];
@@ -34,7 +38,6 @@ namespace hrm
     FFT::~FFT()
     {
         fftw_destroy_plan(plan);
-        fftw_free(in);
         fftw_free(out);
 
         delete[] outMagnitude;
@@ -49,25 +52,19 @@ namespace hrm
 
         //in[index][0] = sin(2*M_PI*0.1*index*(0.07)); // TODO: (test)
 
-        in[index][0] = sample;
-        in[index][1] = 0;
-
-        ++index;
-
-        if (index == properties.numberOfSamples) {
+        if (buffer->add(sample) != nullptr) {
             // Got enough sample, do DFT.
 
+            // Functions for input time domain.
             windowFunction();
             filter();
-            zeroPad();
 
             fftw_execute(plan);
 
+            // Function for output frequency domain.
             scaleAndConvert();
 
-            index = 0;
-            calculated = true;
-
+            calculated = true; // For peak calculation
             return true;
         }
 
@@ -76,21 +73,39 @@ namespace hrm
 
     void FFT::windowFunction()
     {
-        for (int i = 0; i <= properties.numberOfSamples - 1; ++i) {
+        for (unsigned int i = 0; i < buffer->totalSize(); ++i) { // TODO: Size or total size ?
             // Hamming-window
-            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / properties.numberOfSamples);
+            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->totalSize()); // Size or total size ?
 
-            in[i][0] = in[i][0] * windowValue;
-            in[i][1] = in[i][1] * windowValue;
+            buffer->update(i, buffer->getValue(i) * windowValue);
+        }
+    }
+
+    void FFT::filter()
+    {
+        for (unsigned int i = 0; i < buffer->totalSize(); ++i) {
+            xv[0] = xv[1];
+            xv[1] = xv[2];
+            xv[2] = xv[3];
+            xv[3] = xv[4];
+            xv[4] = buffer->getValue(i) / GAIN;
+            yv[0] = yv[1];
+            yv[1] = yv[2];
+            yv[2] = yv[3];
+            yv[3] = yv[4];
+            yv[4] =   (xv[0] + xv[4]) - 2 * xv[2]
+                      + ( -0.4128015981 * yv[0]) + (  0.2397611203 * yv[1])
+                      + (  0.9889943457 * yv[2]) + ( -0.6474311512 * yv[3]);
+            buffer->update(i, yv[4]);
         }
     }
 
     void FFT::scaleAndConvert()
     {
-        int N = properties.totalSamples;
+        unsigned int N = buffer->totalSize();
 
-        // Look only in the neede area.
-        for (int i = 1; i <= N / 2; ++i) {
+        // Without DC offset
+        for (unsigned int i = 1; i <= N / 2; ++i) {
             // Complex value to magnitude
             double scaledAmplReal = 2 * out[i][0] / N;
             double scaledAmplImag = 2 * out[i][1] / N;
@@ -102,43 +117,16 @@ namespace hrm
         }
     }
 
-    void FFT::zeroPad()
-    {
-        for (int i = 0; i < properties.zeroPaddingSamples; ++i) {
-            in[index][0] = 0.0;
-            in[index][1] = 0.0;
-
-            ++index;
-        }
-    }
-
-    void FFT::filter()
-    {
-        for (int i = 0; i <= properties.numberOfSamples - 1; ++i) {
-            xv[0] = xv[1];
-            xv[1] = xv[2];
-            xv[2] = xv[3];
-            xv[3] = xv[4];
-            xv[4] = in[i][0] / GAIN;
-            yv[0] = yv[1];
-            yv[1] = yv[2];
-            yv[2] = yv[3];
-            yv[3] = yv[4];
-            yv[4] =   (xv[0] + xv[4]) - 2 * xv[2]
-                      + ( -0.4128015981 * yv[0]) + (  0.2397611203 * yv[1])
-                      + (  0.9889943457 * yv[2]) + ( -0.6474311512 * yv[3]);
-            in[i][0] = yv[4];
-        }
-    }
-
     fftw_complex *FFT::getIn()
     {
-        return in;
+        return buffer->get();
     }
 
     fftw_complex *FFT::getOut()
     {
-        return out;
+        if (calculated)
+            return out;
+        return nullptr;
     }
 
     void FFT::setSampleInterval(double sampleInterval)
@@ -152,7 +140,7 @@ namespace hrm
 
     int FFT::getPeak()
     {
-        int N = properties.totalSamples;
+        unsigned int N = buffer->totalSize();
 
         if (!calculated)
             return -1;
@@ -160,7 +148,7 @@ namespace hrm
         double max = -1 * std::numeric_limits<double>::max();
         int indexMax = 0;
 
-        for (int i = 1; i <= N / 2; ++i) {
+        for (unsigned int i = 1; i <= N / 2; ++i) {
             if (indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
                     indexToFrequency(i) > MAX_PULSE_FREQUENCY)
                 continue;
@@ -174,7 +162,7 @@ namespace hrm
         return indexMax;
     }
 
-    bool FFT::status()
+    bool FFT::ready()
     {
         if (properties.sampleInterval == 0.0 || properties.sampleRate == 0.0)
             return false;

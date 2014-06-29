@@ -33,6 +33,8 @@ namespace hrm
             void initPlots();
             void initSignals();
             void displayPeak(int indexMax, double max);
+            void displayFrequencies();
+            void displayData(SensorData data);
 
         private slots:
             void openSerialPortClicked();

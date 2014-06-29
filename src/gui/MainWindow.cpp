@@ -50,7 +50,7 @@ namespace hrm
                                "Frequency (Hz)", "Amplitude", "Magnitude (polar coordinate)", minotaur::NO_LIMIT);
         frequencyGraphLayout->layout()->addWidget(plotFrequencyOut);
 
-        plotFrequencyOut->addCurve("Real part", Qt::red);
+        plotFrequencyOut->addCurve("Real part", Qt::magenta);
         plotFrequencyOut->addCurve("Imaginary part", Qt::green);
     }
 
@@ -91,15 +91,32 @@ namespace hrm
 
     void MainWindow::receiveSensorData(SensorData data)
     {
-        if (!fft.status()) {
+        if (!fft.ready()) {
             getSettingsClicked();
             return;
         }
 
+        displayData(data);
+
+        if (fft.addSample(data.broadband))
+            displayFrequencies();
+
+        return;
+
+        QString str = "Sensor> ";
+        str += "Broadband: " + QString::number(data.broadband)
+               + " Ir: " + QString::number(data.ir);
+
+        console->print(str);
+    }
+
+    void MainWindow::displayData(SensorData data)
+    {
         QString str;
 
         QVector<double> dataVector;
         dataVector.append(data.broadband);
+
         plotBroadband->updatePlot(dataVector);
         plotFrequencyIn->updatePlot(dataVector);
 
@@ -109,50 +126,44 @@ namespace hrm
 
         str = QString::number(data.broadband);
         timeDataEdit->append(str);
+    }
 
-        if (fft.addSample(data.broadband)) {
-            frequencyDataEdit->clear();
-            timeDataEdit->clear();
-            plotFrequencyOut->clear();
+    void MainWindow::displayFrequencies()
+    {
+        frequencyDataEdit->clear();
+        timeDataEdit->clear();
+        plotFrequencyOut->clear();
 
-            double *magnitude = fft.getMagnitude();
-            double *real = fft.getRealPart();
-            double *imaginary = fft.getImaginaryPart();
+        double *magnitude = fft.getMagnitude();
+        double *real = fft.getRealPart();
+        double *imaginary = fft.getImaginaryPart();
 
-            FFT_properties properties = fft.getProperties();
+        FFT_properties properties = fft.getProperties();
 
-            // Max peak
-            int indexMax = fft.getPeak();
-            displayPeak(indexMax, magnitude[indexMax]);
+        // Max peak
+        int indexMax = fft.getPeak();
+        displayPeak(indexMax, magnitude[indexMax]);
 
-            plotFrequencyOut->addMarker(
-                properties.sampleRate * ((double) indexMax / properties.totalSamples),
-                magnitude[indexMax]);
+        QVector<double> dataVector;
+        QString str;
 
-            // Plot
-            for (int i = 1; i <= properties.totalSamples / 2; ++i) {
-                /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
-                        fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
-                    continue;*/
+        // Plot
+        for (int i = 1; i <= properties.totalSamples / 2; ++i) {
+            /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
+                    fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
+                continue;*/
 
-                dataVector.clear();
+            dataVector.clear();
 
-                dataVector.append(magnitude[i-1]);
-                dataVector.append(real[i-1]);
-                dataVector.append(imaginary[i-1]);
+            dataVector.append(magnitude[i-1]);
+            dataVector.append(real[i-1]);
+            dataVector.append(imaginary[i-1]);
 
-                plotFrequencyOut->updatePlot(fft.indexToFrequency(i), dataVector);
+            plotFrequencyOut->updatePlot(fft.indexToFrequency(i), dataVector);
 
-                str = QString::number(magnitude[i-1]);
-                frequencyDataEdit->append(str);
-            }
+            str = QString::number(magnitude[i-1]);
+            frequencyDataEdit->append(str);
         }
-
-        str = "Sensor> ";
-        str += "Broadband: " + QString::number(data.broadband)
-               + " Ir: " + QString::number(data.ir);
-
-        console->print(str);
     }
 
     void MainWindow::receiveSensorSettings(SensorSettings settings)
@@ -239,6 +250,10 @@ namespace hrm
         peakFrequencyEdit->setText(QString::number(frequency));
         peakAmplitudeEdit->setText(QString::number(max));
         peakBpmEdit->setText(QString::number(bpm));
+
+        plotFrequencyOut->addMarker(
+            properties.sampleRate * ((double) indexMax / properties.totalSamples),
+            max);
     }
 
 }

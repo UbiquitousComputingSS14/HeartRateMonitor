@@ -1,11 +1,18 @@
 #include "FFTBuffer.h"
 
+#include <iostream>
+
 namespace hrm
 {
 
-    FFTBuffer::FFTBuffer(int size, int windowSize) : size(size)
+    FFTBuffer::FFTBuffer(int effective, int zeroPad, int window) :
+        effectiveSize(effective),
+        zeroPadSize(zeroPad),
+        windowSize(window)
     {
-        dataOut = fftw_alloc_complex(size);
+        dataOut = fftw_alloc_complex(effectiveSize + zeroPadSize);
+
+        std::cout << "FFTBuffer: effectiveSize = " << effectiveSize << " zeroPadSize = " << zeroPad << std::endl;
     }
 
     FFTBuffer::~FFTBuffer()
@@ -13,12 +20,21 @@ namespace hrm
         fftw_free(dataOut);
     }
 
-    fftw_complex *FFTBuffer::add(double data)
+    fftw_complex *FFTBuffer::add(double p_data)
     {
-        this->data.push_back(data);
+        data.push_back(p_data);
 
-        if (this->data.size() == (unsigned int) size) {
+
+
+        if (data.size() == (unsigned int) effectiveSize) {
+
+            std::cout << "Got " << data.size() << " data." << std::endl;
+
             copyToDataOut();
+
+            // Zero pad the other values.
+            zeroPad();
+
             return dataOut;
         }
 
@@ -27,7 +43,7 @@ namespace hrm
 
     void FFTBuffer::copyToDataOut()
     {
-        if (data.size() != (unsigned int) size)
+        if (data.size() != (unsigned int) effectiveSize)
             return;
 
         int i = 0;
@@ -44,6 +60,47 @@ namespace hrm
 
             ++i;
         }
+
+        std::cout << "Vector size: " << data.size() << std::endl;
+    }
+
+    void FFTBuffer::zeroPad()
+    {
+        for (int i = effectiveSize; i < (effectiveSize + zeroPadSize); ++i) {
+            dataOut[i][0] = 0.0;
+            dataOut[i][1] = 0.0;
+        }
+    }
+
+    void FFTBuffer::update(int i, double value)
+    {
+        if (i >= effectiveSize + zeroPadSize || i <= -1)
+            return;
+
+        dataOut[i][0] = value;
+    }
+
+    double FFTBuffer::getValue(int i)
+    {
+        if (i >= effectiveSize + zeroPadSize || i <= -1)
+            return 0.0;
+
+        return dataOut[i][0];
+    }
+
+    fftw_complex *FFTBuffer::get()
+    {
+        return dataOut;
+    }
+
+    unsigned int FFTBuffer::size()
+    {
+        return effectiveSize;
+    }
+
+    unsigned int FFTBuffer::totalSize()
+    {
+        return effectiveSize + zeroPadSize;
     }
 
 }
