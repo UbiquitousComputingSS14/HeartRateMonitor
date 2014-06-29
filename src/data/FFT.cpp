@@ -20,15 +20,17 @@ namespace hrm
         properties.totalSamples = properties.numberOfSamples + properties.zeroPaddingSamples;
 
         buffer = std::make_shared<FFTBuffer>(
-            properties.numberOfSamples,
-            properties.zeroPaddingSamples,
-            10000);
+                     properties.numberOfSamples,
+                     properties.zeroPaddingSamples,
+                     SLIDING_WINDOW);
 
         out = fftw_alloc_complex(buffer->totalSize());
-        plan = fftw_plan_dft_1d(buffer->totalSize(), buffer->get(), out, FFTW_FORWARD, FFTW_MEASURE);
+        plan = fftw_plan_dft_1d(buffer->totalSize(), buffer->get(), out, FFTW_FORWARD, FFTW_MEASURE | FFTW_PRESERVE_INPUT);
 
         // Without DC offset and only positive frequencies.
         int outputSize = buffer->totalSize() / 2;
+
+        std::cout << "TOTAL size: " << buffer->totalSize() << std::endl;
 
         outMagnitude = new double[outputSize];
         outReal = new double[outputSize];
@@ -56,8 +58,8 @@ namespace hrm
             // Got enough sample, do DFT.
 
             // Functions for input time domain.
-            filter();
-            windowFunction();
+            filter(); // Einschwing problem! -> stabilization time
+            windowFunction(); // Hohe Anfangszahl [0] Problem
 
             fftw_execute(plan);
 
@@ -71,19 +73,14 @@ namespace hrm
         return false;
     }
 
-    void FFT::windowFunction()
-    {
-        for (unsigned int i = 0; i < buffer->totalSize(); ++i) { // TODO: Size or total size ?
-            // Hamming-window
-            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->totalSize()); // Size or total size ?
-
-            buffer->update(i, buffer->getValue(i) * windowValue);
-        }
-    }
-
     void FFT::filter()
     {
-        for (unsigned int i = 0; i < buffer->totalSize(); ++i) {
+        for (int i = 0; i < 5; ++i) {
+            xv[i] = 0;
+            yv[i] = 0;
+        }
+
+        for (unsigned int i = 0; i < buffer->size(); ++i) { // TODO: Size or total size ?
             xv[0] = xv[1];
             xv[1] = xv[2];
             xv[2] = xv[3];
@@ -98,11 +95,26 @@ namespace hrm
                       + (  0.9889943457 * yv[2]) + ( -0.6474311512 * yv[3]);
             buffer->update(i, yv[4]);
         }
+
+        // Cut stabilization time (25 samples)
+        for (unsigned int i = 0; i < buffer->size() - 25; ++i) { // TODO: Size or total size ?
+            buffer->update(i, buffer->getValue(i + 25));
+        }
+    }
+
+    void FFT::windowFunction()
+    {
+        for (unsigned int i = 0; i < buffer->size(); ++i) { // TODO: Size or total size ?
+            // Hanning-window
+            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->size()); // TODO: Size or total size ?
+
+            buffer->update(i, buffer->getValue(i) * windowValue);
+        }
     }
 
     void FFT::scaleAndConvert()
     {
-        unsigned int N = buffer->totalSize();
+        unsigned int N = buffer->totalSize(); // TODO: Size or total size ?
 
         // Without DC offset
         for (unsigned int i = 1; i <= N / 2; ++i) {

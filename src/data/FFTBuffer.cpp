@@ -11,8 +11,6 @@ namespace hrm
         windowSize(window)
     {
         dataOut = fftw_alloc_complex(effectiveSize + zeroPadSize);
-
-        std::cout << "FFTBuffer: effectiveSize = " << effectiveSize << " zeroPadSize = " << zeroPad << std::endl;
     }
 
     FFTBuffer::~FFTBuffer()
@@ -24,12 +22,7 @@ namespace hrm
     {
         data.push_back(p_data);
 
-
-
         if (data.size() == (unsigned int) effectiveSize) {
-
-            std::cout << "Got " << data.size() << " data." << std::endl;
-
             copyToDataOut();
 
             // Zero pad the other values.
@@ -60,8 +53,6 @@ namespace hrm
 
             ++i;
         }
-
-        std::cout << "Vector size: " << data.size() << std::endl;
     }
 
     void FFTBuffer::zeroPad()

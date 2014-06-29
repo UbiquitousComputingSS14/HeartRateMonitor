@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QList>
 #include <QTabWidget>
+#include <iostream>
 
 #include <cmath>
 
@@ -48,7 +49,7 @@ namespace hrm
 
         plotFrequencyInPaddedData = new minotaur::MouseMonitorPlot();
         plotFrequencyInPaddedData->init(Qt::blue, "Time Domain",
-                              "Time (k)", "Brightness", "Brightness", minotaur::LIMITED);
+                              "Time (k)", "Brightness", "Brightness", minotaur::NO_LIMIT);
         tabZeroPadded->layout()->addWidget(plotFrequencyInPaddedData);
 
         plotFrequencyOut = new minotaur::MouseMonitorPlot();
@@ -158,6 +159,10 @@ namespace hrm
 
         // Plot
         for (int i = 1; i <= properties.totalSamples / 2; ++i) {
+                /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
+                    fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
+                continue;*/
+
             dataVector.clear();
 
             dataVector.append(magnitude[i-1]);
@@ -170,6 +175,14 @@ namespace hrm
 
             str = QString::number(magnitude[i-1]);
             frequencyDataEdit->append(str);
+        }
+
+        fftw_complex *inPadded = fft.getIn();
+        plotFrequencyInPaddedData->clear();
+        for (int i = 0; i < fft.getProperties().numberOfSamples; ++i) {
+            dataVector.clear();
+            dataVector.append(inPadded[i][0]);
+            plotFrequencyInPaddedData->updatePlot(dataVector);
         }
     }
 
@@ -257,6 +270,8 @@ namespace hrm
         peakFrequencyEdit->setText(QString::number(frequency));
         peakAmplitudeEdit->setText(QString::number(max));
         peakBpmEdit->setText(QString::number(bpm));
+
+        lcdNumber->display(bpm);
 
         plotFrequencyOut->addMarker(
             properties.sampleRate * ((double) indexMax / properties.totalSamples),
