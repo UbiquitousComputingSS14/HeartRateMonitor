@@ -13,7 +13,7 @@ static float xv[NZEROS+1], yv[NPOLES+1];
 namespace hrm
 {
 
-    FFT::FFT() : index(0)
+    FFT::FFT() : index(0), buffer(DEFAULT_SAMPLES, DEFAULT_SAMPLES / 2)
     {
         properties.numberOfSamples = DEFAULT_SAMPLES;
         properties.zeroPaddingSamples = DEFAULT_ZERO_PADDING_SAMPLES;
@@ -112,20 +112,6 @@ namespace hrm
         }
     }
 
-    /**
-     * Butterworth bandpass filter.
-     * (http://www-users.cs.york.ac.uk/~fisher/mkfilter/)
-     *
-        filtertype	 =	 Butterworth
-        passtype	 =	 Bandpass
-        ripple	 =
-        order	 =	 2
-        samplerate	 =	 8
-        corner1	 =	 0.7
-        corner2	 =	 3.9
-        adzero	 =
-        logmin	 =
-     */
     void FFT::filter()
     {
         for (int i = 0; i <= properties.numberOfSamples - 1; ++i) {
@@ -195,11 +181,6 @@ namespace hrm
         return true;
     }
 
-    double FFT::indexToFrequency(int i)
-    {
-        return properties.sampleRate * (i / (double) properties.totalSamples);
-    }
-
     double *FFT::getMagnitude()
     {
         return outMagnitude;
@@ -213,6 +194,11 @@ namespace hrm
     double *FFT::getImaginaryPart()
     {
         return outImaginary;
+    }
+
+    double FFT::indexToFrequency(int i)
+    {
+        return properties.sampleRate * (i / (double) properties.totalSamples);
     }
 
     FFT_properties FFT::getProperties()

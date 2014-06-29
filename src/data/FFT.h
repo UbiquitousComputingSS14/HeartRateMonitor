@@ -37,8 +37,10 @@ namespace hrm
 
             fftw_plan plan;
 
+            FFTBuffer buffer;
             fftw_complex *in;
             fftw_complex *out;
+
             double *outMagnitude;
             double *outReal;
             double *outImaginary;
@@ -64,6 +66,20 @@ namespace hrm
              */
             void zeroPad();
 
+            /**
+             * Butterworth bandpass filter.
+             * (http://www-users.cs.york.ac.uk/~fisher/mkfilter/)
+             *
+                filtertype	 =	 Butterworth
+                passtype	 =	 Bandpass
+                ripple	 =
+                order	 =	 2
+                samplerate	 =	 8
+                corner1	 =	 0.7
+                corner2	 =	 3.9
+                adzero	 =
+                logmin	 =
+             */
             void filter();
 
         public:
