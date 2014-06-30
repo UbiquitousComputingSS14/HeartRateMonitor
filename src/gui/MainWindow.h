@@ -4,7 +4,6 @@
 #include <QtGui/QMainWindow>
 #include <QWidget>
 #include <QString>
-#include <QQueue>
 
 #include "ui_MainWindow.h"
 #include "MouseMonitorPlot.h"

@@ -49,7 +49,7 @@ namespace hrm
 
         plotFrequencyInPaddedData = new minotaur::MouseMonitorPlot();
         plotFrequencyInPaddedData->init(Qt::blue, "Time Domain",
-                              "Time (k)", "Brightness", "Brightness", minotaur::NO_LIMIT);
+                                        "Time (k)", "Brightness", "Brightness", minotaur::NO_LIMIT);
         tabZeroPadded->layout()->addWidget(plotFrequencyInPaddedData);
 
         plotFrequencyOut = new minotaur::MouseMonitorPlot();
@@ -59,7 +59,7 @@ namespace hrm
 
         plotFrequencyOutComplexData = new minotaur::MouseMonitorPlot();
         plotFrequencyOutComplexData->init(Qt::magenta, "Frequency Spectrum",
-                              "Frequency (Hz)", "Amplitude", "Real Part", minotaur::NO_LIMIT);
+                                          "Frequency (Hz)", "Amplitude", "Real Part", minotaur::NO_LIMIT);
         tabComplex->layout()->addWidget(plotFrequencyOutComplexData);
 
         plotFrequencyOutComplexData->addCurve("Imaginary part", Qt::green);
@@ -111,12 +111,6 @@ namespace hrm
             displayFrequencies();
 
         displayData(data);
-
-        QString str = "Sensor> ";
-        str += "Broadband: " + QString::number(data.broadband)
-               + " Ir: " + QString::number(data.ir);
-
-        console->print(str);
     }
 
     void MainWindow::displayData(SensorData data)
@@ -135,6 +129,12 @@ namespace hrm
 
         str = QString::number(data.broadband);
         timeDataEdit->append(str);
+
+        str = "Sensor> ";
+        str += "Broadband: " + QString::number(data.broadband)
+               + " Ir: " + QString::number(data.ir);
+
+        console->print(str);
     }
 
     void MainWindow::displayFrequencies()
@@ -159,9 +159,9 @@ namespace hrm
 
         // Plot
         for (int i = 1; i <= properties.totalSamples / 2; ++i) {
-                /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
-                    fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
-                continue;*/
+            /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
+                fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
+            continue;*/
 
             dataVector.clear();
 

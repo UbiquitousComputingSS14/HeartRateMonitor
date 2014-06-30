@@ -10,9 +10,11 @@
 // power of 2
 #define TOTAL_SAMPLES 1024
 #define DEFAULT_SAMPLES 128
-#define DEFAULT_ZERO_PADDING_SAMPLES (TOTAL_SAMPLES - DEFAULT_SAMPLES)
 #define SLIDING_WINDOW 5
 
+#define DEFAULT_ZERO_PADDING_SAMPLES (TOTAL_SAMPLES - DEFAULT_SAMPLES)
+
+// Which frequencies to consider for peak identification.
 #define MIN_PULSE_FREQUENCY 0.7
 #define MAX_PULSE_FREQUENCY 3.9
 
@@ -22,7 +24,9 @@ namespace hrm
     struct FFT_properties {
         int numberOfSamples = 0;
         int zeroPaddingSamples = 0;
-        int totalSamples = 0; // N
+        int totalSamples = 0; // N (numberOfSamples + zeroPaddingSamples)
+        int outputSize = 0; // totalSamples / 2
+        int slidingWindow = 0;
 
         double sampleInterval = 0.0; // delta x
         double sampleRate = 0.0; // Hz
@@ -65,15 +69,15 @@ namespace hrm
              * Butterworth bandpass filter.
              * (http://www-users.cs.york.ac.uk/~fisher/mkfilter/)
              *
-                filtertype	 =	 Butterworth
-                passtype	 =	 Bandpass
-                ripple	 =
-                order	 =	 2
-                samplerate	 =	 8
-                corner1	 =	 0.7
-                corner2	 =	 3.9
-                adzero	 =
-                logmin	 =
+                filtertype  = Butterworth
+                passtype    = Bandpass
+                ripple      =
+                order       = 2
+                samplerate  = 8
+                corner1	   = 0.7
+                corner2	   = 3.9
+                adzero	   =
+                logmin	   =
              */
             void filter();
 
@@ -98,6 +102,10 @@ namespace hrm
 
             int getPeak();
 
+            /**
+             * FFT needs the sample interval to start calculating.
+             * Call setSampleInterval() first.
+             */
             bool ready();
 
             /**

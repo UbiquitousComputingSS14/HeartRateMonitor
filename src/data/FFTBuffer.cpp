@@ -1,7 +1,5 @@
 #include "FFTBuffer.h"
 
-#include <iostream>
-
 namespace hrm
 {
 

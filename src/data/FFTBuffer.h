@@ -1,5 +1,7 @@
 /**
- * This class is a wrapper for the fftw_complex array.
+ * This class is a wrapper for the fftw_complex array. It allows adding
+ * of data like a queue and returns a fftw_complex buffer. If required,
+ * it can be configured to do zero padding.
  */
 
 #ifndef FFT_BUFFER_H
@@ -21,6 +23,7 @@ namespace hrm
         private:
             int effectiveSize;
             int zeroPadSize;
+            // effectiveSize + zeroPadSize = totalSize
             int windowSize;
 
             fftw_complex *dataOut;
@@ -67,8 +70,14 @@ namespace hrm
 
             fftw_complex *get();
 
+            /**
+             * @return effective size
+             */
             unsigned int size();
 
+            /**
+             * @return effective + zeroPad size
+             */
             unsigned int totalSize();
     };
 

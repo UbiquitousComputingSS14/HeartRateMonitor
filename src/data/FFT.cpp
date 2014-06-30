@@ -17,24 +17,24 @@ namespace hrm
     {
         properties.numberOfSamples = DEFAULT_SAMPLES;
         properties.zeroPaddingSamples = DEFAULT_ZERO_PADDING_SAMPLES;
+        properties.slidingWindow = SLIDING_WINDOW;
         properties.totalSamples = properties.numberOfSamples + properties.zeroPaddingSamples;
 
         buffer = std::make_shared<FFTBuffer>(
                      properties.numberOfSamples,
                      properties.zeroPaddingSamples,
-                     SLIDING_WINDOW);
+                     properties.slidingWindow);
 
         out = fftw_alloc_complex(buffer->totalSize());
-        plan = fftw_plan_dft_1d(buffer->totalSize(), buffer->get(), out, FFTW_FORWARD, FFTW_MEASURE | FFTW_PRESERVE_INPUT);
+        plan = fftw_plan_dft_1d(buffer->totalSize(), buffer->get(), out,
+                                FFTW_FORWARD, FFTW_MEASURE | FFTW_PRESERVE_INPUT);
 
         // Without DC offset and only positive frequencies.
-        int outputSize = buffer->totalSize() / 2;
+        properties.outputSize = buffer->totalSize() / 2;
 
-        std::cout << "TOTAL size: " << buffer->totalSize() << std::endl;
-
-        outMagnitude = new double[outputSize];
-        outReal = new double[outputSize];
-        outImaginary = new double[outputSize];
+        outMagnitude = new double[properties.outputSize];
+        outReal = new double[properties.outputSize];
+        outImaginary = new double[properties.outputSize];
     }
 
     FFT::~FFT()
@@ -58,8 +58,8 @@ namespace hrm
             // Got enough sample, do DFT.
 
             // Functions for input time domain.
-            filter(); // Einschwing problem! -> stabilization time
-            windowFunction(); // Hohe Anfangszahl [0] Problem
+            filter();
+            windowFunction();
 
             fftw_execute(plan);
 
@@ -167,7 +167,7 @@ namespace hrm
 
             if (outMagnitude[i-1] > max) {
                 max = outMagnitude[i-1];
-                indexMax = i-1;
+                indexMax = i - 1;
             }
         }
 
