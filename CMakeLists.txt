@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(HeartRateMonitor)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmakeModules")
 
 # Qt
 find_package(Qt4 REQUIRED)
@@ -17,7 +18,6 @@ qt4_wrap_ui(hrm_ui_SOURCES ${hrm_ui_FORMS})
 qt4_add_resources(hrm_qrc_SOURCES ${hrm_qrc_RESOURCES})
 
 # FFTW
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmakeModules")
 find_package(FFTW)
 
 # Application sources
