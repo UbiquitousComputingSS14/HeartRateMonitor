@@ -80,7 +80,7 @@ namespace hrm
             yv[i] = 0;
         }
 
-        for (unsigned int i = 0; i < buffer->size(); ++i) { // TODO: Size or total size ?
+        for (unsigned int i = 0; i < buffer->size(); ++i) {
             xv[0] = xv[1];
             xv[1] = xv[2];
             xv[2] = xv[3];
@@ -97,16 +97,16 @@ namespace hrm
         }
 
         // Cut stabilization time (25 samples)
-        for (unsigned int i = 0; i < buffer->size() - 25; ++i) { // TODO: Size or total size ?
+        for (unsigned int i = 0; i < buffer->size() - 25; ++i) {
             buffer->update(i, buffer->getValue(i + 25));
         }
     }
 
     void FFT::windowFunction()
     {
-        for (unsigned int i = 0; i < buffer->size(); ++i) { // TODO: Size or total size ?
+        for (unsigned int i = 0; i < buffer->size(); ++i) {
             // Hanning-window
-            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->size()); // TODO: Size or total size ?
+            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->size());
 
             buffer->update(i, buffer->getValue(i) * windowValue);
         }
@@ -114,7 +114,7 @@ namespace hrm
 
     void FFT::scaleAndConvert()
     {
-        unsigned int N = buffer->totalSize(); // TODO: Size or total size ?
+        unsigned int N = buffer->totalSize();
 
         // Without DC offset
         for (unsigned int i = 1; i <= N / 2; ++i) {
