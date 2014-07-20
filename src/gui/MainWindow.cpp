@@ -32,32 +32,32 @@ namespace hrm
 
     void MainWindow::initPlots()
     {
-        plotBroadband = new minotaur::MouseMonitorPlot();
+        plotBroadband = new minotaur::MouseMonitorPlot(this);
         plotBroadband->init(Qt::blue, "Broadband", "Sample",
                             "Sensor Data", "Broadband brightness", minotaur::LIMITED);
         graphLayout->layout()->addWidget(plotBroadband);
 
-        plotIr = new minotaur::MouseMonitorPlot();
+        plotIr = new minotaur::MouseMonitorPlot(this);
         plotIr->init(Qt::red, "IR", "Sample",
                      "Sensor Data", "IR Brightness", minotaur::LIMITED);
         graphLayout->layout()->addWidget(plotIr);
 
-        plotFrequencyIn = new minotaur::MouseMonitorPlot();
+        plotFrequencyIn = new minotaur::MouseMonitorPlot(this);
         plotFrequencyIn->init(Qt::blue, "Time Domain",
                               "Time (k)", "Brightness", "Brightness", minotaur::LIMITED);
         tabEffective->layout()->addWidget(plotFrequencyIn);
 
-        plotFrequencyInPaddedData = new minotaur::MouseMonitorPlot();
+        plotFrequencyInPaddedData = new minotaur::MouseMonitorPlot(this);
         plotFrequencyInPaddedData->init(Qt::blue, "Time Domain",
                                         "Time (k)", "Brightness", "Brightness", minotaur::NO_LIMIT);
         tabZeroPadded->layout()->addWidget(plotFrequencyInPaddedData);
 
-        plotFrequencyOut = new minotaur::MouseMonitorPlot();
+        plotFrequencyOut = new minotaur::MouseMonitorPlot(this);
         plotFrequencyOut->init(Qt::darkCyan, "Frequency Spectrum",
                                "Frequency (Hz)", "Amplitude", "Magnitude", minotaur::NO_LIMIT);
         tabMagnitude->layout()->addWidget(plotFrequencyOut);
 
-        plotFrequencyOutComplexData = new minotaur::MouseMonitorPlot();
+        plotFrequencyOutComplexData = new minotaur::MouseMonitorPlot(this);
         plotFrequencyOutComplexData->init(Qt::magenta, "Frequency Spectrum",
                                           "Frequency (Hz)", "Amplitude", "Real Part", minotaur::NO_LIMIT);
         tabComplex->layout()->addWidget(plotFrequencyOutComplexData);

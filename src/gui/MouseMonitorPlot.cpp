@@ -31,6 +31,9 @@ namespace minotaur
         setAxisTitle(QwtPlot::xBottom, QString(xAxisTitle.c_str()));
         setAxisTitle(QwtPlot::yLeft, QString(yAxisTitle.c_str()));
 
+        setAxisAutoScale(QwtPlot::xBottom);
+        setAxisAutoScale(QwtPlot::yLeft);
+
         if (type == LIMITED)
             setAxisScale(QwtPlot::xBottom, 0, maxSize, xStep);
     }

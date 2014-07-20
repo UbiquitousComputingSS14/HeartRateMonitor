@@ -56,7 +56,7 @@ namespace minotaur
             QwtPlotMarker *marker = nullptr;
 
         public:
-            MouseMonitorPlot(QwtPlot *parent = 0) : QwtPlot(parent) {}
+            MouseMonitorPlot(QWidget *parent = 0) : QwtPlot(parent) {}
             virtual ~MouseMonitorPlot() {}
 
             void init(QColor color,

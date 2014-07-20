@@ -1,11 +1,19 @@
 #ifndef HRM_MAIN_WINDOW_H
 #define HRM_MAIN_WINDOW_H
 
-#include <QtGui/QMainWindow>
+// TODO: This is not so nice
+/*#ifdef QT5
+    #include <QMainWindow>
+#else
+    #include <QtGui/QMainWindow>
+#endif*/
+#include <QMainWindow>
+
 #include <QWidget>
 #include <QString>
 
 #include "ui_MainWindow.h"
+
 #include "MouseMonitorPlot.h"
 #include "Console.h"
 #include "Serial.h"
@@ -14,7 +22,7 @@
 namespace hrm
 {
 
-    class MainWindow : public QMainWindow, public Ui::MainWindow
+    class MainWindow : public QMainWindow, public Ui_MainWindow //Ui::MainWindow
     {
             Q_OBJECT
 
