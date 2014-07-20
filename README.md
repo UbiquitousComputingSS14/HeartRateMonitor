@@ -16,6 +16,8 @@ Installation is straight forward. Follow the tutorials from the links.
 
 ## Windows (Qt5)
 * Install MinGW and MSYS
-* Install Qt5
+* Install Qt5 (with QtSerialPort addon)
 * Install Qwt
 * Compile FFTW (in MSYS environment)
+
+Ensure all components are in the PATH variable.
