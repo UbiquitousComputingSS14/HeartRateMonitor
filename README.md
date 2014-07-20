@@ -4,8 +4,20 @@ For additional information: [documentation](https://github.com/UbiquitousComputi
 
 The following libraries are required:
 
+* Qt4 or Qt5
 * qtserialport: http://qt-project.org/wiki/QtSerialPort
 * FFTW: http://www.fftw.org/
 * Qwt: http://qwt.sourceforge.net/ (6.0.0)
 
+Note that with Qt5 qtserialport is already included.
 
+## Linux
+Installation is straight forward. Follow the tutorials from the links.
+
+## Windows (Qt5)
+* Install MinGW and MSYS
+* Install Qt5 (with QtSerialPort addon)
+* Install Qwt
+* Compile FFTW (in MSYS environment)
+
+Ensure all components are in the PATH variable.
