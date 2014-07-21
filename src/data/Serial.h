@@ -21,7 +21,7 @@ namespace hrm
         static SerialPortSettings getDefaultSettings() {
             SerialPortSettings settings;
 
-            settings.portName = "/dev/ttyACM0";
+            settings.portName = "COM4"; //"/dev/ttyACM0";
             settings.baudrate = 9600;
             settings.dataBits = QSerialPort::Data8;
             settings.parity = QSerialPort::NoParity;

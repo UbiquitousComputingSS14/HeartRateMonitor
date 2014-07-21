@@ -13,7 +13,7 @@ set(CMAKE_PREFIX_PATH ${HRM_QT5} ${HRM_QT4} ${HRM_QWT} ${HRM_FFTW})
 
 ######################################################################
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++ -static-libgcc -std=c++11 -Wall -g")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmakeModules")
 cmake_policy(SET CMP0020 OLD)
 
