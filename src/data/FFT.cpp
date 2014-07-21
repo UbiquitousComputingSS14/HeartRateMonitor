@@ -1,8 +1,10 @@
 #include "FFT.h"
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <limits>
+
+const static double M_PI = 3.14159265359;
 
 // Filter properties
 #define NZEROS 4
