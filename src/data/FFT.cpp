@@ -105,7 +105,7 @@ namespace hrm
     void FFT::windowFunction()
     {
         for (unsigned int i = 0; i < buffer->size(); ++i) {
-            // Hanning-window
+            // Hamming-window
             double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->size());
 
             buffer->update(i, buffer->getValue(i) * windowValue);
