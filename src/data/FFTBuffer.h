@@ -1,7 +1,10 @@
 /**
- * This class is a wrapper for the fftw_complex array. It allows adding
- * of data like a queue and returns a fftw_complex buffer. If required,
- * it can be configured to do zero padding.
+ * This class is a wrapper for the fftw_complex array.
+ *
+ * It allows adding of data like a queue and returns a fftw_complex
+ * buffer. If required, it can be configured to do zero padding.
+ * Additionally, a sliding window is used. It determines the number of
+ * new samples required to return a new fftw_complex buffer.
  */
 
 #ifndef FFT_BUFFER_H
@@ -23,7 +26,7 @@ namespace hrm
         private:
             int effectiveSize;
             int zeroPadSize;
-            // effectiveSize + zeroPadSize = totalSize
+            int totalSize;
             int windowSize;
 
             fftw_complex *dataOut;
@@ -45,7 +48,7 @@ namespace hrm
              * If (windowSize >= effectiveSize || windowSize <= 0) => All data is
              * removed from the vector. Each fftw_complex array has "fresh" data.
              *
-             * If (windowSize < effectiveSize) => effectiveSize - windowSize elements are
+             * If (windowSize < effectiveSize) => (effectiveSize - windowSize) elements are
              * preserved in the data vector. windowSize new elements are needed
              * that add() returns the next array pointer.
              */
@@ -73,12 +76,12 @@ namespace hrm
             /**
              * @return effective size
              */
-            unsigned int size();
+            unsigned int getSize();
 
             /**
              * @return effective + zeroPad size
              */
-            unsigned int totalSize();
+            unsigned int getTotalSize();
     };
 
 }

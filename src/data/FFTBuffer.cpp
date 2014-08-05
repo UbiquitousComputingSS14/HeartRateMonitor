@@ -6,6 +6,7 @@ namespace hrm
     FFTBuffer::FFTBuffer(int effective, int zeroPad, int window) :
         effectiveSize(effective),
         zeroPadSize(zeroPad),
+        totalSize(effectiveSize + zeroPadSize),
         windowSize(window)
     {
         dataOut = fftw_alloc_complex(effectiveSize + zeroPadSize);
@@ -55,7 +56,7 @@ namespace hrm
 
     void FFTBuffer::zeroPad()
     {
-        for (int i = effectiveSize; i < (effectiveSize + zeroPadSize); ++i) {
+        for (int i = effectiveSize; i < totalSize; ++i) {
             dataOut[i][0] = 0.0;
             dataOut[i][1] = 0.0;
         }
@@ -63,7 +64,7 @@ namespace hrm
 
     void FFTBuffer::update(int i, double value)
     {
-        if (i >= effectiveSize + zeroPadSize || i <= -1)
+        if (i >= totalSize || i <= -1)
             return;
 
         dataOut[i][0] = value;
@@ -71,7 +72,7 @@ namespace hrm
 
     double FFTBuffer::getValue(int i)
     {
-        if (i >= effectiveSize + zeroPadSize || i <= -1)
+        if (i >= totalSize || i <= -1)
             return 0.0;
 
         return dataOut[i][0];
@@ -82,14 +83,14 @@ namespace hrm
         return dataOut;
     }
 
-    unsigned int FFTBuffer::size()
+    unsigned int FFTBuffer::getSize()
     {
         return effectiveSize;
     }
 
-    unsigned int FFTBuffer::totalSize()
+    unsigned int FFTBuffer::getTotalSize()
     {
-        return effectiveSize + zeroPadSize;
+        return totalSize;
     }
 
 }

@@ -2,12 +2,11 @@
 #define HRM_MAIN_WINDOW_H
 
 // TODO: This is not so nice
-/*#ifdef QT5
+#ifdef Qt5
     #include <QMainWindow>
 #else
     #include <QtGui/QMainWindow>
-#endif*/
-#include <QMainWindow>
+#endif
 
 #include <QWidget>
 #include <QString>

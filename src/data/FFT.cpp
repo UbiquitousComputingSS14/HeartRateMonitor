@@ -4,7 +4,9 @@
 #include <iostream>
 #include <limits>
 
-const static double M_PI = 3.14159265359;
+#ifdef OS_WINDOWS
+    const static double M_PI = 3.14159265359;
+#endif
 
 // Filter properties
 #define NZEROS 4
@@ -27,12 +29,12 @@ namespace hrm
                      properties.zeroPaddingSamples,
                      properties.slidingWindow);
 
-        out = fftw_alloc_complex(buffer->totalSize());
-        plan = fftw_plan_dft_1d(buffer->totalSize(), buffer->get(), out,
+        out = fftw_alloc_complex(buffer->getTotalSize());
+        plan = fftw_plan_dft_1d(buffer->getTotalSize(), buffer->get(), out,
                                 FFTW_FORWARD, FFTW_MEASURE | FFTW_PRESERVE_INPUT);
 
         // Without DC offset and only positive frequencies.
-        properties.outputSize = buffer->totalSize() / 2;
+        properties.outputSize = buffer->getTotalSize() / 2;
 
         outMagnitude = new double[properties.outputSize];
         outReal = new double[properties.outputSize];
@@ -82,7 +84,7 @@ namespace hrm
             yv[i] = 0;
         }
 
-        for (unsigned int i = 0; i < buffer->size(); ++i) {
+        for (unsigned int i = 0; i < buffer->getSize(); ++i) {
             xv[0] = xv[1];
             xv[1] = xv[2];
             xv[2] = xv[3];
@@ -99,16 +101,16 @@ namespace hrm
         }
 
         // Cut stabilization time (25 samples)
-        for (unsigned int i = 0; i < buffer->size() - 25; ++i) {
+        for (unsigned int i = 0; i < buffer->getSize() - 25; ++i) {
             buffer->update(i, buffer->getValue(i + 25));
         }
     }
 
     void FFT::windowFunction()
     {
-        for (unsigned int i = 0; i < buffer->size(); ++i) {
+        for (unsigned int i = 0; i < buffer->getSize(); ++i) {
             // Hamming-window
-            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->size());
+            double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->getSize());
 
             buffer->update(i, buffer->getValue(i) * windowValue);
         }
@@ -116,7 +118,7 @@ namespace hrm
 
     void FFT::scaleAndConvert()
     {
-        unsigned int N = buffer->totalSize();
+        unsigned int N = buffer->getTotalSize();
 
         // Without DC offset
         for (unsigned int i = 1; i <= N / 2; ++i) {
@@ -154,7 +156,7 @@ namespace hrm
 
     int FFT::getPeak()
     {
-        unsigned int N = buffer->totalSize();
+        unsigned int N = buffer->getTotalSize();
 
         if (!calculated)
             return -1;
