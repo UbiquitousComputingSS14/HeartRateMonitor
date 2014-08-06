@@ -4,7 +4,7 @@
 #include <iostream>
 #include <limits>
 
-#ifdef OS_WINDOWS
+#ifdef _WIN32
     const static double M_PI = 3.14159265359;
 #endif
 

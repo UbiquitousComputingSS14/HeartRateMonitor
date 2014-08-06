@@ -29,6 +29,10 @@ file(GLOB_RECURSE hrm_qrc_RESOURCES "res/*.qrc")
 
 find_package(Qt5SerialPort QUIET)
 find_package(Qt5Widgets QUIET)
+if (Qt5Widgets_FOUND AND Qt5SerialPort_FOUND)
+    set(Qt5_FOUND 1)
+endif (Qt5Widgets_FOUND AND Qt5SerialPort_FOUND)
+
 if (NOT Qt5_FOUND)
     find_package(Qt4 REQUIRED)
     qt4_wrap_ui(hrm_ui_SOURCES ${hrm_ui_FORMS})
