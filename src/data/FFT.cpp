@@ -8,12 +8,6 @@
     const static double M_PI = 3.14159265359;
 #endif
 
-// Filter properties
-#define NZEROS 4
-#define NPOLES 4
-#define GAIN 1.564354775e+00
-static float xv[NZEROS+1], yv[NPOLES+1];
-
 namespace hrm
 {
 
@@ -23,6 +17,10 @@ namespace hrm
         properties.zeroPaddingSamples = DEFAULT_ZERO_PADDING_SAMPLES;
         properties.slidingWindow = SLIDING_WINDOW;
         properties.totalSamples = properties.numberOfSamples + properties.zeroPaddingSamples;
+
+        // Filter determines the max and min frequencies.
+        properties.maxFrequency = butterworth.getMaxFrequency();
+        properties.minFrequency = butterworth.getMinFrequency();
 
         buffer = std::make_shared<FFTBuffer>(
                      properties.numberOfSamples,
@@ -62,7 +60,7 @@ namespace hrm
             // Got enough sample, do DFT.
 
             // Functions for input time domain.
-            filter();
+            butterworth.filter(buffer.get(), 25);
             windowFunction();
 
             fftw_execute(plan);
@@ -77,41 +75,11 @@ namespace hrm
         return false;
     }
 
-    void FFT::filter()
-    {
-        for (int i = 0; i < 5; ++i) {
-            xv[i] = 0;
-            yv[i] = 0;
-        }
-
-        for (unsigned int i = 0; i < buffer->getSize(); ++i) {
-            xv[0] = xv[1];
-            xv[1] = xv[2];
-            xv[2] = xv[3];
-            xv[3] = xv[4];
-            xv[4] = buffer->getValue(i) / GAIN;
-            yv[0] = yv[1];
-            yv[1] = yv[2];
-            yv[2] = yv[3];
-            yv[3] = yv[4];
-            yv[4] =   (xv[0] + xv[4]) - 2 * xv[2]
-                      + ( -0.4128015981 * yv[0]) + (  0.2397611203 * yv[1])
-                      + (  0.9889943457 * yv[2]) + ( -0.6474311512 * yv[3]);
-            buffer->update(i, yv[4]);
-        }
-
-        // Cut stabilization time (25 samples)
-        for (unsigned int i = 0; i < buffer->getSize() - 25; ++i) {
-            buffer->update(i, buffer->getValue(i + 25));
-        }
-    }
-
     void FFT::windowFunction()
     {
         for (unsigned int i = 0; i < buffer->getSize(); ++i) {
             // Hamming-window
             double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / buffer->getSize());
-
             buffer->update(i, buffer->getValue(i) * windowValue);
         }
     }
@@ -156,17 +124,20 @@ namespace hrm
 
     int FFT::getPeak()
     {
-        unsigned int N = buffer->getTotalSize();
-
         if (!calculated)
             return -1;
+
+        if (!ready())
+            return -1;
+
+        unsigned int N = buffer->getTotalSize();
 
         double max = -1 * std::numeric_limits<double>::max();
         int indexMax = 0;
 
         for (unsigned int i = 1; i <= N / 2; ++i) {
-            if (indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
-                    indexToFrequency(i) > MAX_PULSE_FREQUENCY)
+            if (indexToFrequency(i) < properties.minFrequency ||
+                    indexToFrequency(i) > properties.maxFrequency)
                 continue;
 
             if (outMagnitude[i-1] > max) {
@@ -202,6 +173,9 @@ namespace hrm
 
     double FFT::indexToFrequency(int i)
     {
+        if (!ready())
+            return -1.0;
+
         return properties.sampleRate * (i / (double) properties.totalSamples);
     }
 

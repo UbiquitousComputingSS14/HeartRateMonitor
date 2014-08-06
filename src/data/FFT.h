@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "FFTBuffer.h"
+#include "Filter.h"
 
 #include <fftw3.h>
 
@@ -13,10 +14,6 @@
 #define SLIDING_WINDOW 5
 
 #define DEFAULT_ZERO_PADDING_SAMPLES (TOTAL_SAMPLES - DEFAULT_SAMPLES)
-
-// Which frequencies to consider for peak identification.
-#define MIN_PULSE_FREQUENCY 0.7
-#define MAX_PULSE_FREQUENCY 3.9
 
 namespace hrm
 {
@@ -30,6 +27,8 @@ namespace hrm
 
         double sampleInterval = 0.0; // delta x
         double sampleRate = 0.0; // Hz
+        double minFrequency = 0.0;
+        double maxFrequency = 0.0;
 
         double segmentDuration = 0.0; // ms
         double frequencyResolution = 0.0; // Hz
@@ -40,6 +39,7 @@ namespace hrm
     {
         private:
             FFT_properties properties;
+            Filter butterworth;
 
             fftw_plan plan;
             std::shared_ptr<FFTBuffer> buffer;
@@ -64,22 +64,6 @@ namespace hrm
              * fft, [comparison to real fft]).
              */
             void scaleAndConvert();
-
-            /**
-             * Butterworth bandpass filter.
-             * (http://www-users.cs.york.ac.uk/~fisher/mkfilter/)
-             *
-                filtertype  = Butterworth
-                passtype    = Bandpass
-                ripple      =
-                order       = 2
-                samplerate  = 8
-                corner1	   = 0.7
-                corner2	   = 3.9
-                adzero	   =
-                logmin	   =
-             */
-            void filter();
 
         public:
             FFT();

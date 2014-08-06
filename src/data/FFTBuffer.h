@@ -14,7 +14,8 @@
 
 #include <fftw3.h>
 
-#define DEFAULT_SIZE 128 // Number of samples
+// Default sizes (in samples)
+#define DEFAULT_SIZE 128
 #define DEFAULT_WINDOW_SIZE 64
 #define DEFAULT_ZERO_PAD_SIZE (4*DEFAULT_SIZE)
 
