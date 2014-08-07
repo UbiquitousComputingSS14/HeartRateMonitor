@@ -30,7 +30,7 @@ namespace hrm
             int totalSize;
             int windowSize;
 
-            fftw_complex *dataOut;
+            fftw_complex *dataOut = nullptr;
             std::vector<double> data;
 
             /**
@@ -68,9 +68,20 @@ namespace hrm
              */
             fftw_complex *add(double p_data);
 
+            /**
+             * Update the value with index i in the fftw_complex array.
+             */
             void update(int i, double value);
 
+            /**
+             * Get a value from the fftw_complex array.
+             */
             double getValue(int i);
+
+            /**
+             * clears the internal data and sets a new size.
+             */
+            void setSize(int effective, int zeroPad, int window);
 
             fftw_complex *get();
 
@@ -83,6 +94,13 @@ namespace hrm
              * @return effective + zeroPad size
              */
             unsigned int getTotalSize();
+
+            /**
+             * @return The sliding window size
+             */
+            int getWindowSize();
+
+            int getZeroPadSize();
     };
 
 }

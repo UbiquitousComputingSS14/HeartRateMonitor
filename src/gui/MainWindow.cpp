@@ -17,8 +17,6 @@ namespace hrm
         console = new Console();
         mainLayout->layout()->addWidget(console);
 
-        serial = new Serial();
-
         actionConnect->setEnabled(true);
         actionDisconnect->setEnabled(false);
 
@@ -27,7 +25,7 @@ namespace hrm
         initPlots();
         initSignals();
 
-        plotFrequencyIn->setLimit(fft.getProperties().numberOfSamples);
+        plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
     }
 
     void MainWindow::initPlots()
@@ -76,44 +74,55 @@ namespace hrm
         connect(setSampleIntervalBtn, SIGNAL(clicked()),
                 this, SLOT(setSampleIntervalClicked()));
 
-        connect(serial, SIGNAL(receiveLine(QString)),
-                this, SLOT(receiveLine(QString)));
-        connect(serial, SIGNAL(receiveSensorData(SensorData)),
-                this, SLOT(receiveSensorData(SensorData)));
-        connect(serial, SIGNAL(receiveSensorSettings(SensorSettings)),
-                this, SLOT(receiveSensorSettings(SensorSettings)));
+        connect(&controller, SIGNAL(sensorSettings(SensorSettings, FFT_properties)),
+                this, SLOT(sensorSettings(SensorSettings, FFT_properties)));
+        connect(&controller, SIGNAL(sensorData(SensorData)),
+                this, SLOT(sensorData(SensorData)));
+        connect(&controller, SIGNAL(frequencySpectrum(std::vector<double>&, int)),
+                this, SLOT(frequencySpectrum(std::vector<double>&, int)));
     }
 
     MainWindow::~MainWindow()
     {
-        serial->closeSerial();
-
         delete plotBroadband;
         delete plotIr;
         delete plotFrequencyIn;
         delete plotFrequencyOut;
-        delete serial;
         delete console;
     }
 
-    void MainWindow::receiveLine(QString line)
+    void MainWindow::sensorSettings(
+        SensorSettings settings,
+        FFT_properties properties)
     {
+        sensorEdit->setText(settings.sensor);
+        idEdit->setText(settings.id);
+        maxValEdit->setText(settings.max);
+        minValEdit->setText(settings.min);
+        sampleIntervalEdit->setText(settings.sampleInterval);
+        resolutionEdit->setText(settings.resolution);
+        setSampleIntervalEdit->setText(settings.sampleInterval);
+
+        fftSampleIntervalEdit->setText(QString::number(properties.sampleInterval));
+        fftSampleRateEdit->setText(QString::number(properties.sampleRate));
+        fftSamplesPerSegmentEdit->setText(QString::number(properties.numberOfSamples));
+        fftZeroPaddingEdit->setText(QString::number(properties.zeroPaddingSamples));
+        fftSegmentDurationEdit->setText(QString::number(properties.segmentDuration));
+
+        QString str;
+
+        str = QString::number(properties.frequencyResolution) + " (" +
+              QString::number(properties.frequencyResolution * 60) + " bpm)";
+
+        fftFrequencyResolutionEdit->setText(str);
+
+        str = QString::number(properties.frequencyResolutionWithZeroPadding) + " (" +
+              QString::number(properties.frequencyResolutionWithZeroPadding * 60) + " bpm)";
+
+        fftFrequencyResolutionZPEdit->setText(str);
     }
 
-    void MainWindow::receiveSensorData(SensorData data)
-    {
-        if (!fft.ready()) {
-            getSettingsClicked();
-            return;
-        }
-
-        if (fft.addSample(data.broadband))
-            displayFrequencies();
-
-        displayData(data);
-    }
-
-    void MainWindow::displayData(SensorData data)
+    void MainWindow::sensorData(SensorData data)
     {
         QString str;
 
@@ -137,129 +146,53 @@ namespace hrm
         console->print(str);
     }
 
-    void MainWindow::displayFrequencies()
+    void MainWindow::frequencySpectrum(
+        std::vector<double>& magnitude,
+        int peakIndex)
     {
+        std::vector<double>& real = controller.getRealPart();
+        std::vector<double>& imaginary = controller.getImaginaryPart();
+        FFT_properties properties = controller.getFFTProperties();
+
         frequencyDataEdit->clear();
         timeDataEdit->clear();
         plotFrequencyOut->clear();
         plotFrequencyOutComplexData->clear();
 
-        double *magnitude = fft.getMagnitude();
-        double *real = fft.getRealPart();
-        double *imaginary = fft.getImaginaryPart();
-
-        FFT_properties properties = fft.getProperties();
-
         // Max peak
-        int indexMax = fft.getPeak();
-        displayPeak(indexMax, magnitude[indexMax]);
+        displayPeak(peakIndex, magnitude[peakIndex]);
 
         QVector<double> dataVector;
         QString str;
 
         // Plot
         for (int i = 1; i <= properties.totalSamples / 2; ++i) {
-            /*if (fft.indexToFrequency(i) < MIN_PULSE_FREQUENCY ||
-                fft.indexToFrequency(i) > MAX_PULSE_FREQUENCY)
-            continue;*/
-
             dataVector.clear();
 
             dataVector.append(magnitude[i-1]);
-            plotFrequencyOut->updatePlot(fft.indexToFrequency(i), dataVector);
+            plotFrequencyOut->updatePlot(controller.indexToFrequency(i), dataVector);
 
             dataVector.clear();
             dataVector.append(real[i-1]);
             dataVector.append(imaginary[i-1]);
-            plotFrequencyOutComplexData->updatePlot(fft.indexToFrequency(i), dataVector);
+            plotFrequencyOutComplexData->updatePlot(controller.indexToFrequency(i), dataVector);
 
             str = QString::number(magnitude[i-1]);
             frequencyDataEdit->append(str);
         }
 
-        fftw_complex *inPadded = fft.getIn();
+        fftw_complex *inPadded = controller.getIn();
         plotFrequencyInPaddedData->clear();
-        for (int i = 0; i < fft.getProperties().numberOfSamples; ++i) {
+        for (int i = 0; i < controller.getFFTProperties().numberOfSamples; ++i) {
             dataVector.clear();
             dataVector.append(inPadded[i][0]);
             plotFrequencyInPaddedData->updatePlot(dataVector);
         }
     }
 
-    void MainWindow::receiveSensorSettings(SensorSettings settings)
-    {
-        sensorEdit->setText(settings.sensor);
-        idEdit->setText(settings.id);
-        maxValEdit->setText(settings.max);
-        minValEdit->setText(settings.min);
-        sampleIntervalEdit->setText(settings.sampleInterval);
-        resolutionEdit->setText(settings.resolution);
-        setSampleIntervalEdit->setText(settings.sampleInterval);
-
-        fft.setSampleInterval(settings.sampleInterval.toDouble());
-        FFT_properties properties = fft.getProperties();
-
-        fftSampleIntervalEdit->setText(QString::number(properties.sampleInterval));
-        fftSampleRateEdit->setText(QString::number(properties.sampleRate));
-        fftSamplesPerSegmentEdit->setText(QString::number(properties.numberOfSamples));
-        fftZeroPaddingEdit->setText(QString::number(properties.zeroPaddingSamples));
-        fftSegmentDurationEdit->setText(QString::number(properties.segmentDuration));
-
-        QString str;
-
-        str = QString::number(properties.frequencyResolution) + " (" +
-              QString::number(properties.frequencyResolution * 60) + " bpm)";
-
-        fftFrequencyResolutionEdit->setText(str);
-
-        str = QString::number(properties.frequencyResolutionWithZeroPadding) + " (" +
-              QString::number(properties.frequencyResolutionWithZeroPadding * 60) + " bpm)";
-
-        fftFrequencyResolutionZPEdit->setText(str);
-    }
-
-    void MainWindow::openSerialPortClicked()
-    {
-        if (serial->openSerial()) {
-            statusbar->showMessage(tr("Connected"));
-
-            actionConnect->setEnabled(false);
-            actionDisconnect->setEnabled(true);
-
-            getSettingsClicked();
-        } else
-            QMessageBox::critical(this, tr("Error"), serial->errorString());
-    }
-
-    void MainWindow::closeSerialPortClicked()
-    {
-        serial->closeSerial();
-
-        actionConnect->setEnabled(true);
-        actionDisconnect->setEnabled(false);
-
-        statusbar->showMessage(tr("Disconnected"));
-    }
-
-    void MainWindow::getSettingsClicked()
-    {
-        QString data = "get settings";
-        serial->sendData(data + '\n');
-        console->print("> " + data);
-    }
-
-    void MainWindow::setSampleIntervalClicked()
-    {
-        QString data = "set sampleInterval " + setSampleIntervalEdit->text();
-        serial->sendData(data + "\n");
-        console->print("> " + data);
-
-        getSettingsClicked();
-    }
-
     void MainWindow::displayPeak(int indexMax, double max)
     {
-        FFT_properties properties = fft.getProperties();
+        FFT_properties properties = controller.getFFTProperties();
 
         double fraction = indexMax / (double) properties.totalSamples;
         double frequency = properties.sampleRate * fraction;
@@ -276,6 +209,39 @@ namespace hrm
         plotFrequencyOut->addMarker(
             properties.sampleRate * ((double) indexMax / properties.totalSamples),
             max);
+    }
+
+    void MainWindow::openSerialPortClicked()
+    {
+        if (controller.start()) {
+            statusbar->showMessage(tr("Connected"));
+
+            actionConnect->setEnabled(false);
+            actionDisconnect->setEnabled(true);
+        } else
+            QMessageBox::critical(this, tr("Error"), "Could not open serial port.");
+    }
+
+    void MainWindow::closeSerialPortClicked()
+    {
+        controller.stop();
+
+        actionConnect->setEnabled(true);
+        actionDisconnect->setEnabled(false);
+
+        statusbar->showMessage(tr("Disconnected"));
+    }
+
+    void MainWindow::getSettingsClicked()
+    {
+        controller.getSensorSettings();
+        console->print("> Getting sensor settings");
+    }
+
+    void MainWindow::setSampleIntervalClicked()
+    {
+        controller.setSampleInterval(setSampleIntervalEdit->text());
+        console->print("> Setting sample interval to " + setSampleIntervalEdit->text());
     }
 
 }

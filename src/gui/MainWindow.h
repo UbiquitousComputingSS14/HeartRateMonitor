@@ -1,11 +1,10 @@
 #ifndef HRM_MAIN_WINDOW_H
 #define HRM_MAIN_WINDOW_H
 
-// TODO: This is not so nice
 #ifdef Qt5
-    #include <QMainWindow>
+#include <QMainWindow>
 #else
-    #include <QtGui/QMainWindow>
+#include <QtGui/QMainWindow>
 #endif
 
 #include <QWidget>
@@ -15,17 +14,19 @@
 
 #include "MouseMonitorPlot.h"
 #include "Console.h"
-#include "Serial.h"
 #include "FFT.h"
+#include "Controller.h"
 
 namespace hrm
 {
 
-    class MainWindow : public QMainWindow, public Ui_MainWindow //Ui::MainWindow
+    class MainWindow : public QMainWindow, public Ui_MainWindow
     {
             Q_OBJECT
 
         private:
+            Controller controller;
+
             minotaur::MouseMonitorPlot *plotBroadband;
             minotaur::MouseMonitorPlot *plotIr;
 
@@ -35,15 +36,11 @@ namespace hrm
             minotaur::MouseMonitorPlot *plotFrequencyOutComplexData;
 
             Console *console;
-            Serial *serial;
-
-            FFT fft;
 
             void initPlots();
             void initSignals();
+
             void displayPeak(int indexMax, double max);
-            void displayFrequencies();
-            void displayData(SensorData data);
 
         private slots:
             void openSerialPortClicked();
@@ -51,10 +48,13 @@ namespace hrm
             void getSettingsClicked();
             void setSampleIntervalClicked();
 
-        public slots:
-            void receiveLine(QString line);
-            void receiveSensorData(SensorData data);
-            void receiveSensorSettings(SensorSettings settings);
+            void sensorSettings(
+                SensorSettings settings,
+                FFT_properties properties);
+            void sensorData(SensorData data);
+            void frequencySpectrum(
+                std::vector<double>& magnitude,
+                int peakIndex);
 
         public:
             MainWindow(QWidget *parent = 0);
