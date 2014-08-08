@@ -60,7 +60,7 @@ namespace hrm
 
     void FFTBuffer::update(int i, double value)
     {
-        if (i >= totalSize || i <= -1)
+        if (i >= totalSize || i < 0)
             return;
 
         dataOut[i][0] = value;
@@ -68,7 +68,7 @@ namespace hrm
 
     double FFTBuffer::getValue(int i)
     {
-        if (i >= totalSize || i <= -1)
+        if (i >= totalSize || i < 0)
             return 0.0;
 
         return dataOut[i][0];
@@ -79,14 +79,16 @@ namespace hrm
         if (dataOut != nullptr)
             fftw_free(dataOut);
 
-        dataOut = fftw_alloc_complex(effectiveSize + zeroPadSize);
-
-        data.clear();
+        if (window <= 0)
+            window = effective;
 
         effectiveSize = effective;
         zeroPadSize = zeroPad;
-        totalSize = effectiveSize + zeroPadSize;
+        totalSize = effective + zeroPad;
         windowSize = window;
+
+        dataOut = fftw_alloc_complex(totalSize);
+        data.clear();
     }
 
     fftw_complex *FFTBuffer::get()

@@ -29,29 +29,33 @@ namespace hrm
 
     void Controller::receiveSensorData(SensorData data)
     {
-        if (!fft.ready()) {
+        if (!fft) {
             getSensorSettings();
             return;
         }
 
-        if (fft.addSample(data.broadband))
-            Q_EMIT frequencySpectrum(fft.getMagnitude(),
-                                     fft.getPeak());
+        if (fft->addSample(data.broadband))
+            Q_EMIT frequencySpectrum(fft->getMagnitude(),
+                                     fft->getPeak());
 
         Q_EMIT sensorData(data);
     }
 
     void Controller::receiveSensorSettings(SensorSettings settings)
     {
-        fft.setSampleInterval(settings.sampleInterval.toDouble());
-        FFT_properties properties = fft.getProperties();
+        if (!fft)
+            fft = std::unique_ptr<FFT>(new FFT(settings.sampleInterval.toDouble()));
+        else
+            fft->setSampleInterval(settings.sampleInterval.toDouble());
+
+        FFT_properties properties = fft->getProperties();
 
         Q_EMIT sensorSettings(settings, properties);
     }
 
     FFT_properties Controller::getFFTProperties()
     {
-        return fft.getProperties();
+        return fft->getProperties();
     }
 
     bool Controller::start()
@@ -85,27 +89,27 @@ namespace hrm
 
     std::vector<double>& Controller::getMagnitude()
     {
-        return fft.getMagnitude();
+        return fft->getMagnitude();
     }
 
     std::vector<double>& Controller::getRealPart()
     {
-        return fft.getRealPart();
+        return fft->getRealPart();
     }
 
     std::vector<double>& Controller::getImaginaryPart()
     {
-        return fft.getImaginaryPart();
+        return fft->getImaginaryPart();
     }
 
     fftw_complex *Controller::getIn()
     {
-        return fft.getIn();
+        return fft->getIn();
     }
 
     double Controller::indexToFrequency(int i)
     {
-        return fft.indexToFrequency(i);
+        return fft->indexToFrequency(i);
     }
 
 }

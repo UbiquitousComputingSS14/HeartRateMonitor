@@ -24,8 +24,6 @@ namespace hrm
 
         initPlots();
         initSignals();
-
-        plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
     }
 
     void MainWindow::initPlots()
@@ -120,6 +118,9 @@ namespace hrm
               QString::number(properties.frequencyResolutionWithZeroPadding * 60) + " bpm)";
 
         fftFrequencyResolutionZPEdit->setText(str);
+
+        // TODO:
+        plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
     }
 
     void MainWindow::sensorData(SensorData data)

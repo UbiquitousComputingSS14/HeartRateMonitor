@@ -1,3 +1,12 @@
+/**
+ * This class uses QtSerialPort to receive data from a light sensor.
+ *
+ * It parses the incoming data and emits corresponding signals for
+ * sensor data and settings.
+ *
+ * @author Jens Gansloser
+ */
+
 #ifndef SERIAL_H
 #define SERIAL_H
 

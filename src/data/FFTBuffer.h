@@ -5,6 +5,8 @@
  * buffer. If required, it can be configured to do zero padding.
  * Additionally, a sliding window is used. It determines the number of
  * new samples required to return a new fftw_complex buffer.
+ *
+ * @author Jens Gansloser
  */
 
 #ifndef FFT_BUFFER_H
@@ -46,11 +48,12 @@ namespace hrm
 
         public:
             /**
-             * If (windowSize >= effectiveSize || windowSize <= 0) => All data is
+             * If (effectiveSize <= windowSize) => All data is
              * removed from the vector. Each fftw_complex array has "fresh" data.
              *
-             * If (windowSize < effectiveSize) => (effectiveSize - windowSize) elements are
-             * preserved in the data vector. windowSize new elements are needed
+             * If (effectiveSize > windowSize && windowSize > 0) =>
+             * (effectiveSize - windowSize) elements are preserved in
+             * the data vector. windowSize new elements are needed
              * that add() returns the next array pointer.
              */
             FFTBuffer(int effective = DEFAULT_SIZE,

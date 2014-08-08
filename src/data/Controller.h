@@ -6,10 +6,14 @@
  *
  * Qts slot and signal mechanism is used for communication
  * between controller and GUI.
+ *
+ * @author Jens Gansloser
  */
 
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
+
+#include <memory>
 
 #include "FFT.h"
 #include "Serial.h"
@@ -28,7 +32,7 @@ namespace hrm
             static const QString SET_SAMPLE_INTERVAL_SERIAL;
 
             Serial *serial;
-            FFT fft;
+            std::unique_ptr<FFT> fft;
 
             void initSignals();
 

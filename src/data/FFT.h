@@ -1,3 +1,10 @@
+/**
+ * The class FFT executes the signal processing steps to determine the
+ * heart rate.
+ *
+ * @author Jens Gansloser
+ */
+
 #ifndef FFT_H
 #define FFT_H
 
@@ -24,7 +31,7 @@ namespace hrm
         int numberOfSamples = 0;
         int zeroPaddingSamples = 0;
         int totalSamples = 0; // N (numberOfSamples + zeroPaddingSamples)
-        int outputSize = 0; // totalSamples / 2
+        int outputSize = 0; // totalSamples / 2 (only positive frequencies)
 
         int slidingWindow = 0;
 
@@ -81,8 +88,18 @@ namespace hrm
              */
             void applySampleSettings();
 
+            /**
+             * Checks if the given index from a frequency spectrum is
+             * a required frequency based on the min and max frequency
+             * variable.
+             *
+             * @retval true The frequency is required
+             * @retval false The frequency is not required (can be removed)
+             */
+            bool isRequiredFrequency(int index);
+
         public:
-            FFT();
+            FFT(double sampleInterval);
             ~FFT();
 
             /**
@@ -95,12 +112,8 @@ namespace hrm
             bool addSample(double sample);
 
             /**
-             * Input array held by FFTBuffer.
+             * Is required to calculate the peak.
              */
-            fftw_complex *getIn();
-
-            fftw_complex *getOut();
-
             void setSampleInterval(double sampleInterval);
 
             void setSampleSettings(int totalSamples, int samples, int window);
@@ -110,10 +123,11 @@ namespace hrm
             double indexToFrequency(int i);
 
             /**
-             * FFT needs the sample interval to start calculating.
-             * Call setSampleInterval() first.
+             * @return Input array held by FFTBuffer.
              */
-            bool ready();
+            fftw_complex *getIn();
+
+            fftw_complex *getOut();
 
             /**
              * @return The magnitude of the polar coordiantes without
