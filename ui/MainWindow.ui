@@ -97,7 +97,7 @@
               </size>
              </property>
              <property name="currentIndex">
-              <number>1</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="tabEffective">
               <attribute name="title">
@@ -204,6 +204,9 @@
               </item>
               <item row="2" column="1">
                <widget class="QSlider" name="zeroPaddingSamplesSlider">
+                <property name="maximum">
+                 <number>1000</number>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -225,6 +228,12 @@
               </item>
               <item row="1" column="1">
                <widget class="QSlider" name="effectiveSamplesSlider">
+                <property name="minimum">
+                 <number>20</number>
+                </property>
+                <property name="maximum">
+                 <number>500</number>
+                </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
                 </property>
@@ -347,7 +356,6 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionInformation"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuFile">

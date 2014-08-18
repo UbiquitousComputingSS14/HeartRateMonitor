@@ -45,6 +45,8 @@ namespace hrm
             void displayPeak(int indexMax, double max);
 
         private slots:
+            void about();
+
             void openSerialPortClicked();
             void closeSerialPortClicked();
             void getSettingsClicked();

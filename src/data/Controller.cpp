@@ -122,15 +122,15 @@ namespace hrm
     void Controller::setSlidingWindowSize(int size)
     {
         fft->setSampleSettings(fft->getProperties().numberOfSamples,
-                               size,
-                               fft->getProperties().slidingWindow);
+                               fft->getProperties().zeroPaddingSamples,
+                               size);
     }
 
     void Controller::setZeroPadSize(int size)
     {
         fft->setSampleSettings(fft->getProperties().numberOfSamples,
-                               fft->getProperties().zeroPaddingSamples,
-                               size);
+                               size,
+                               fft->getProperties().slidingWindow);
     }
 
 }

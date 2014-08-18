@@ -65,6 +65,9 @@ namespace hrm
 
     void MainWindow::initSignals()
     {
+        connect(actionExit, SIGNAL(triggered()), this, SLOT(close()));
+        connect(actionAbout, SIGNAL(triggered()), this, SLOT(about()));
+
         connect(actionConnect, SIGNAL(triggered()),
                 this, SLOT(openSerialPortClicked()));
         connect(actionDisconnect, SIGNAL(triggered()),
@@ -120,7 +123,12 @@ namespace hrm
         settingsDialog->setSensorInfo(settings);
         settingsDialog->setFFTInfo(properties);
 
-        plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
+        plotFrequencyIn->setLimit(properties.numberOfSamples);
+
+        sampleIntervalSlider->setValue(properties.sampleInterval);
+        effectiveSamplesSlider->setValue(properties.numberOfSamples);
+        zeroPaddingSamplesSlider->setValue(properties.zeroPaddingSamples);
+        slidingWindowSlider->setValue(properties.slidingWindow);
     }
 
     void MainWindow::sensorData(SensorData data)
@@ -236,6 +244,13 @@ namespace hrm
         settingsDialog->setVisible(true);
     }
 
+    /**
+     * Sets sample interval on light sensor.
+     *
+     * Command is sent via serial to the sensor. After that the sensors'
+     * settings are queried. A signal is emmited from serial class which
+     * sets the GUI info elements.
+     */
     void MainWindow::sampleIntervalSliderReleased()
     {
         controller.setSampleInterval(QString::number(sampleIntervalSlider->value()));
@@ -246,16 +261,34 @@ namespace hrm
     void MainWindow::effectiveSamplesSliderReleased()
     {
         controller.setEffectiveSize(effectiveSamplesSlider->value());
+        console->printInfo("> Setting effective sample size to " +
+                           QString::number(effectiveSamplesSlider->value()));
+
+        settingsDialog->setFFTInfo(controller.getFFTProperties());
+        plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
+        plotFrequencyIn->clear();
     }
 
     void MainWindow::zeroPaddingSamplesSliderReleased()
     {
         controller.setZeroPadSize(zeroPaddingSamplesSlider->value());
+        console->printInfo("> Setting zero padding sample size to " +
+                           QString::number(zeroPaddingSamplesSlider->value()));
+
+        settingsDialog->setFFTInfo(controller.getFFTProperties());
+        plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
+        plotFrequencyIn->clear();
     }
 
     void MainWindow::slidingWindowSliderReleased()
     {
         controller.setSlidingWindowSize(slidingWindowSlider->value());
+        console->printInfo("> Setting sliding window size to " +
+                           QString::number(slidingWindowSlider->value()));
+
+        settingsDialog->setFFTInfo(controller.getFFTProperties());
+        plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
+        plotFrequencyIn->clear();
     }
 
     void MainWindow::sampleIntervalSliderChanged(int value)
@@ -276,6 +309,16 @@ namespace hrm
     void MainWindow::slidingWindowSliderChanged(int value)
     {
         slidingWindowEdit->setText(QString::number(value));
+    }
+
+    void MainWindow::about()
+    {
+        QMessageBox::about(this, tr("About HRM"),
+                           "HRM measures the users' heart rate with the photoplethysmogram technique. "
+                           "It uses the FFT to identify the frequency spectrum and detect the current heart rate. "
+                           "More information are available at Github.\n\n"
+                           "Author: Jens Gansloser\n"
+                           "Github: https://github.com/UbiquitousComputingSS14/Documentation");
     }
 
 }

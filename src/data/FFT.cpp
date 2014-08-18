@@ -106,6 +106,8 @@ namespace hrm
     {
         buffer.setSize(effective, zeroPad, window);
         applySampleSettings();
+        // Update the other properties
+        setSampleInterval(properties.sampleInterval);
     }
 
     void FFT::applySampleSettings()
