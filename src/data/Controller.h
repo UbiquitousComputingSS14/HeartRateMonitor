@@ -68,6 +68,9 @@ namespace hrm
             void setEffectiveSize(int size);
             void setZeroPadSize(int size);
             void setSlidingWindowSize(int size);
+            void setUseFilter(bool status);
+            void setUseWindowFunction(bool status);
+            void setUseScaling(bool status);
     };
 
 }

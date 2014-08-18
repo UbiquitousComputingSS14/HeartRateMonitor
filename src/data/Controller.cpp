@@ -133,4 +133,19 @@ namespace hrm
                                fft->getProperties().slidingWindow);
     }
 
+    void Controller::setUseFilter(bool status)
+    {
+        fft->setUseFilter(status);
+    }
+
+    void Controller::setUseScaling(bool status)
+    {
+        fft->setUseScaling(status);
+    }
+
+    void Controller::setUseWindowFunction(bool status)
+    {
+        fft->setUseWindowFunction(status);
+    }
+
 }

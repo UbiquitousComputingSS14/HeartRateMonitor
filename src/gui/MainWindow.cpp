@@ -98,6 +98,13 @@ namespace hrm
         connect(slidingWindowSlider, SIGNAL(valueChanged(int)),
                 this, SLOT(slidingWindowSliderChanged(int)));
 
+        connect(windowFunctionCheckBox, SIGNAL(stateChanged(int)),
+                this, SLOT(windowFunctionCheckBoxChanged(int)));
+        connect(filterCheckBox, SIGNAL(stateChanged(int)),
+                this, SLOT(filterCheckBoxChanged(int)));
+        connect(scalingCheckBox, SIGNAL(stateChanged(int)),
+                this, SLOT(scalingCheckBoxChanged(int)));
+
         connect(&controller, SIGNAL(sensorSettings(SensorSettings, FFT_properties)),
                 this, SLOT(sensorSettings(SensorSettings, FFT_properties)));
         connect(&controller, SIGNAL(sensorData(SensorData)),
@@ -309,6 +316,21 @@ namespace hrm
     void MainWindow::slidingWindowSliderChanged(int value)
     {
         slidingWindowEdit->setText(QString::number(value));
+    }
+
+    void MainWindow::windowFunctionCheckBoxChanged(int state)
+    {
+        controller.setUseWindowFunction(state);
+    }
+
+    void MainWindow::filterCheckBoxChanged(int state)
+    {
+        controller.setUseFilter(state);
+    }
+
+    void MainWindow::scalingCheckBoxChanged(int state)
+    {
+        controller.setUseScaling(state);
     }
 
     void MainWindow::about()

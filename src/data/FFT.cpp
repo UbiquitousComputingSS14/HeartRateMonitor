@@ -39,13 +39,18 @@ namespace hrm
             // Got enough sample, do DFT.
 
             // Functions for input time domain.
-            windowFunction();
+            if (useWindowFunction)
+                windowFunction();
 
             fftw_execute(plan);
 
             // Function for output frequency domain.
-            idealFilter();
-            scaleAndConvert();
+            if (useIdealFilter)
+                idealFilter();
+            if (useScaling)
+                scaleAndConvert();
+            else
+                convert();
 
             calculated = true; // For peak calculation
             return true;
@@ -92,6 +97,22 @@ namespace hrm
         }
     }
 
+    void FFT::convert()
+    {
+        outReal.clear();
+        outImaginary.clear();
+        outMagnitude.clear();
+
+        // Without DC offset
+        for (int i = 1; i <= properties.outputSize; ++i) {
+            double magnitude = (sqrt(pow(out[i][0], 2) + pow(out[i][1], 2)));
+
+            outReal.push_back(out[i][0]);
+            outImaginary.push_back(out[i][1]);
+            outMagnitude.push_back(magnitude);
+        }
+    }
+
     void FFT::setSampleInterval(double sampleInterval)
     {
         properties.sampleInterval = sampleInterval;
@@ -125,6 +146,21 @@ namespace hrm
         out = fftw_alloc_complex(properties.totalSamples);
         plan = fftw_plan_dft_1d(properties.totalSamples, buffer.get(), out,
                                 FFTW_FORWARD, FFTW_MEASURE | FFTW_PRESERVE_INPUT);
+    }
+
+    void FFT::setUseFilter(bool status)
+    {
+        useIdealFilter = status;
+    }
+
+    void FFT::setUseWindowFunction(bool status)
+    {
+        useWindowFunction = status;
+    }
+
+    void FFT::setUseScaling(bool status)
+    {
+        useScaling = status;
     }
 
     int FFT::getPeak()

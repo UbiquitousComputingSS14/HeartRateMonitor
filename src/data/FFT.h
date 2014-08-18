@@ -61,6 +61,9 @@ namespace hrm
             std::vector<double> outReal;
             std::vector<double> outImaginary;
 
+            bool useWindowFunction = true;
+            bool useIdealFilter = true;
+            bool useScaling = true;
             bool calculated = false;
 
             /**
@@ -81,6 +84,12 @@ namespace hrm
              * fft, [comparison to real fft]).
              */
             void scaleAndConvert();
+
+            /**
+             * Only converts the rectangular data to polar
+             * coordinates.
+             */
+            void convert();
 
             /**
              * Applies the buffer settings to the fft output settings.
@@ -117,6 +126,12 @@ namespace hrm
             void setSampleInterval(double sampleInterval);
 
             void setSampleSettings(int effective, int zeroPad, int window);
+
+            void setUseFilter(bool status);
+
+            void setUseWindowFunction(bool status);
+
+            void setUseScaling(bool status);
 
             int getPeak();
 

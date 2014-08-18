@@ -61,6 +61,10 @@ namespace hrm
             void zeroPaddingSamplesSliderChanged(int value);
             void slidingWindowSliderChanged(int value);
 
+            void windowFunctionCheckBoxChanged(int state);
+            void filterCheckBoxChanged(int state);
+            void scalingCheckBoxChanged(int state);
+
             void sensorSettings(
                 SensorSettings settings,
                 FFT_properties properties);
