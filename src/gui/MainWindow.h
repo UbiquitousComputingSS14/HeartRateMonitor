@@ -16,6 +16,7 @@
 #include "Console.h"
 #include "FFT.h"
 #include "Controller.h"
+#include "SettingsDialog.h"
 
 namespace hrm
 {
@@ -36,6 +37,7 @@ namespace hrm
             minotaur::MouseMonitorPlot *plotFrequencyOutComplexData;
 
             Console *console;
+            SettingsDialog *settingsDialog;
 
             void initPlots();
             void initSignals();
@@ -46,7 +48,16 @@ namespace hrm
             void openSerialPortClicked();
             void closeSerialPortClicked();
             void getSettingsClicked();
-            void setSampleIntervalClicked();
+            void openSettingsDialogClicked();
+
+            void sampleIntervalSliderReleased();
+            void effectiveSamplesSliderReleased();
+            void zeroPaddingSamplesSliderReleased();
+            void slidingWindowSliderReleased();
+            void sampleIntervalSliderChanged(int value);
+            void effectiveSamplesSliderChanged(int value);
+            void zeroPaddingSamplesSliderChanged(int value);
+            void slidingWindowSliderChanged(int value);
 
             void sensorSettings(
                 SensorSettings settings,

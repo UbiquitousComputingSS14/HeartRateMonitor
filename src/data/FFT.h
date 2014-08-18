@@ -116,7 +116,7 @@ namespace hrm
              */
             void setSampleInterval(double sampleInterval);
 
-            void setSampleSettings(int totalSamples, int samples, int window);
+            void setSampleSettings(int effective, int zeroPad, int window);
 
             int getPeak();
 

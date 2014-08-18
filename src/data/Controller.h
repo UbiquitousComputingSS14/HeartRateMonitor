@@ -65,6 +65,9 @@ namespace hrm
             std::vector<double>& getImaginaryPart();
             fftw_complex *getIn();
             double indexToFrequency(int i);
+            void setEffectiveSize(int size);
+            void setZeroPadSize(int size);
+            void setSlidingWindowSize(int size);
     };
 
 }

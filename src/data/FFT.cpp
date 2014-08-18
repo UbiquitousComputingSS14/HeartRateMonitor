@@ -44,7 +44,7 @@ namespace hrm
             fftw_execute(plan);
 
             // Function for output frequency domain.
-            // TODO: idealFilter();
+            idealFilter();
             scaleAndConvert();
 
             calculated = true; // For peak calculation
@@ -54,7 +54,6 @@ namespace hrm
         return false;
     }
 
-    // TODO: Only the effective data multiply?
     void FFT::windowFunction()
     {
         for (int i = 0; i < properties.numberOfSamples; ++i) {
@@ -82,9 +81,6 @@ namespace hrm
 
         // Without DC offset
         for (int i = 1; i <= properties.outputSize; ++i) {
-            if (!isRequiredFrequency(i))
-                continue;
-
             // Complex value to magnitude
             double scaledAmplReal = 2.0 * out[i][0] / properties.totalSamples;
             double scaledAmplImag = 2.0 * out[i][1] / properties.totalSamples;

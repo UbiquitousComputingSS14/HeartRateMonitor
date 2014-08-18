@@ -112,4 +112,25 @@ namespace hrm
         return fft->indexToFrequency(i);
     }
 
+    void Controller::setEffectiveSize(int size)
+    {
+        fft->setSampleSettings(size,
+                               fft->getProperties().zeroPaddingSamples,
+                               fft->getProperties().slidingWindow);
+    }
+
+    void Controller::setSlidingWindowSize(int size)
+    {
+        fft->setSampleSettings(fft->getProperties().numberOfSamples,
+                               size,
+                               fft->getProperties().slidingWindow);
+    }
+
+    void Controller::setZeroPadSize(int size)
+    {
+        fft->setSampleSettings(fft->getProperties().numberOfSamples,
+                               fft->getProperties().zeroPaddingSamples,
+                               size);
+    }
+
 }

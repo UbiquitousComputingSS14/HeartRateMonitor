@@ -17,6 +17,8 @@ namespace hrm
         console = new Console();
         mainLayout->layout()->addWidget(console);
 
+        settingsDialog = new SettingsDialog(this);
+
         actionConnect->setEnabled(true);
         actionDisconnect->setEnabled(false);
 
@@ -67,10 +69,31 @@ namespace hrm
                 this, SLOT(openSerialPortClicked()));
         connect(actionDisconnect, SIGNAL(triggered()),
                 this, SLOT(closeSerialPortClicked()));
-        connect(getSettingsBtn, SIGNAL(clicked()),
+        connect(actionSettings, SIGNAL(triggered()),
+                this, SLOT(openSettingsDialogClicked()));
+        connect(actionSettings_2, SIGNAL(triggered()),
+                this, SLOT(openSettingsDialogClicked()));
+
+        // From settings dialog
+        connect(settingsDialog->getSettingsBtn, SIGNAL(clicked()),
                 this, SLOT(getSettingsClicked()));
-        connect(setSampleIntervalBtn, SIGNAL(clicked()),
-                this, SLOT(setSampleIntervalClicked()));
+
+        connect(sampleIntervalSlider, SIGNAL(sliderReleased()),
+                this, SLOT(sampleIntervalSliderReleased()));
+        connect(effectiveSamplesSlider, SIGNAL(sliderReleased()),
+                this, SLOT(effectiveSamplesSliderReleased()));
+        connect(zeroPaddingSamplesSlider, SIGNAL(sliderReleased()),
+                this, SLOT(zeroPaddingSamplesSliderReleased()));
+        connect(slidingWindowSlider, SIGNAL(sliderReleased()),
+                this, SLOT(slidingWindowSliderReleased()));
+        connect(sampleIntervalSlider, SIGNAL(valueChanged(int)),
+                this, SLOT(sampleIntervalSliderChanged(int)));
+        connect(effectiveSamplesSlider, SIGNAL(valueChanged(int)),
+                this, SLOT(effectiveSamplesSliderChanged(int)));
+        connect(zeroPaddingSamplesSlider, SIGNAL(valueChanged(int)),
+                this, SLOT(zeroPaddingSamplesSliderChanged(int)));
+        connect(slidingWindowSlider, SIGNAL(valueChanged(int)),
+                this, SLOT(slidingWindowSliderChanged(int)));
 
         connect(&controller, SIGNAL(sensorSettings(SensorSettings, FFT_properties)),
                 this, SLOT(sensorSettings(SensorSettings, FFT_properties)));
@@ -87,39 +110,16 @@ namespace hrm
         delete plotFrequencyIn;
         delete plotFrequencyOut;
         delete console;
+        delete settingsDialog;
     }
 
     void MainWindow::sensorSettings(
         SensorSettings settings,
         FFT_properties properties)
     {
-        sensorEdit->setText(settings.sensor);
-        idEdit->setText(settings.id);
-        maxValEdit->setText(settings.max);
-        minValEdit->setText(settings.min);
-        sampleIntervalEdit->setText(settings.sampleInterval);
-        resolutionEdit->setText(settings.resolution);
-        setSampleIntervalEdit->setText(settings.sampleInterval);
+        settingsDialog->setSensorInfo(settings);
+        settingsDialog->setFFTInfo(properties);
 
-        fftSampleIntervalEdit->setText(QString::number(properties.sampleInterval));
-        fftSampleRateEdit->setText(QString::number(properties.sampleRate));
-        fftSamplesPerSegmentEdit->setText(QString::number(properties.numberOfSamples));
-        fftZeroPaddingEdit->setText(QString::number(properties.zeroPaddingSamples));
-        fftSegmentDurationEdit->setText(QString::number(properties.segmentDuration));
-
-        QString str;
-
-        str = QString::number(properties.frequencyResolution) + " (" +
-              QString::number(properties.frequencyResolution * 60) + " bpm)";
-
-        fftFrequencyResolutionEdit->setText(str);
-
-        str = QString::number(properties.frequencyResolutionWithZeroPadding) + " (" +
-              QString::number(properties.frequencyResolutionWithZeroPadding * 60) + " bpm)";
-
-        fftFrequencyResolutionZPEdit->setText(str);
-
-        // TODO:
         plotFrequencyIn->setLimit(controller.getFFTProperties().numberOfSamples);
     }
 
@@ -137,8 +137,7 @@ namespace hrm
         dataVector.append(data.ir);
         plotIr->updatePlot(dataVector);
 
-        str = QString::number(data.broadband);
-        timeDataEdit->append(str);
+        settingsDialog->setTimeDataEdit(data.broadband);
 
         str = "Sensor> ";
         str += "Broadband: " + QString::number(data.broadband)
@@ -155,8 +154,8 @@ namespace hrm
         std::vector<double>& imaginary = controller.getImaginaryPart();
         FFT_properties properties = controller.getFFTProperties();
 
-        frequencyDataEdit->clear();
-        timeDataEdit->clear();
+        settingsDialog->clearFrequencyDataEdit();
+        settingsDialog->clearTimeDataEdit();
         plotFrequencyOut->clear();
         plotFrequencyOutComplexData->clear();
 
@@ -178,8 +177,7 @@ namespace hrm
             dataVector.append(imaginary[i-1]);
             plotFrequencyOutComplexData->updatePlot(controller.indexToFrequency(i), dataVector);
 
-            str = QString::number(magnitude[i-1]);
-            frequencyDataEdit->append(str);
+            settingsDialog->setFrequencyDataEdit(magnitude[i-1]);
         }
 
         fftw_complex *inPadded = controller.getIn();
@@ -199,17 +197,11 @@ namespace hrm
         double frequency = properties.sampleRate * fraction;
         double bpm = frequency * 60;
 
-        peakIndexEdit->setText(QString::number(indexMax));
-        peakFractionEdit->setText(QString::number(fraction));
-        peakFrequencyEdit->setText(QString::number(frequency));
-        peakAmplitudeEdit->setText(QString::number(max));
-        peakBpmEdit->setText(QString::number(bpm));
+        settingsDialog->setPeakInfo(indexMax, fraction, frequency, max, bpm);
 
         lcdNumber->display(bpm);
 
-        plotFrequencyOut->addMarker(
-            properties.sampleRate * ((double) indexMax / properties.totalSamples),
-            max);
+        plotFrequencyOut->addMarker(frequency, max);
     }
 
     void MainWindow::openSerialPortClicked()
@@ -236,13 +228,54 @@ namespace hrm
     void MainWindow::getSettingsClicked()
     {
         controller.getSensorSettings();
-        console->print("> Getting sensor settings");
+        console->printInfo("> Getting sensor settings");
     }
 
-    void MainWindow::setSampleIntervalClicked()
+    void MainWindow::openSettingsDialogClicked()
     {
-        controller.setSampleInterval(setSampleIntervalEdit->text());
-        console->print("> Setting sample interval to " + setSampleIntervalEdit->text());
+        settingsDialog->setVisible(true);
+    }
+
+    void MainWindow::sampleIntervalSliderReleased()
+    {
+        controller.setSampleInterval(QString::number(sampleIntervalSlider->value()));
+        console->printInfo("> Setting sample interval to " +
+                           QString::number(sampleIntervalSlider->value()));
+    }
+
+    void MainWindow::effectiveSamplesSliderReleased()
+    {
+        controller.setEffectiveSize(effectiveSamplesSlider->value());
+    }
+
+    void MainWindow::zeroPaddingSamplesSliderReleased()
+    {
+        controller.setZeroPadSize(zeroPaddingSamplesSlider->value());
+    }
+
+    void MainWindow::slidingWindowSliderReleased()
+    {
+        controller.setSlidingWindowSize(slidingWindowSlider->value());
+    }
+
+    void MainWindow::sampleIntervalSliderChanged(int value)
+    {
+        sampleIntervalEdit->setText(QString::number(value));
+    }
+
+    void MainWindow::effectiveSamplesSliderChanged(int value)
+    {
+        effectiveSamplesEdit->setText(QString::number(value));
+    }
+
+    void MainWindow::zeroPaddingSamplesSliderChanged(int value)
+    {
+        zeroPaddingSamplesEdit->setText(QString::number(value));
+    }
+
+    void MainWindow::slidingWindowSliderChanged(int value)
+    {
+        slidingWindowEdit->setText(QString::number(value));
     }
 
 }

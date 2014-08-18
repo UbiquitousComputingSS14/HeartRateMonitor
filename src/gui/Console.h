@@ -11,11 +11,16 @@ namespace hrm
     {
             Q_OBJECT
 
+        private:
+            static const QString INFO_HTML;
+            static const QString END_HTML;
+
         public:
             Console(QWidget *parent = 0);
             virtual ~Console();
 
             void print(const QString &string);
+            void printInfo(const QString &string);
     };
 
 }
