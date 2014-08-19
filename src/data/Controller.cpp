@@ -114,6 +114,9 @@ namespace hrm
 
     void Controller::setEffectiveSize(int size)
     {
+        if (!fft)
+            return;
+
         fft->setSampleSettings(size,
                                fft->getProperties().zeroPaddingSamples,
                                fft->getProperties().slidingWindow);
@@ -121,6 +124,9 @@ namespace hrm
 
     void Controller::setSlidingWindowSize(int size)
     {
+        if (!fft)
+            return;
+
         fft->setSampleSettings(fft->getProperties().numberOfSamples,
                                fft->getProperties().zeroPaddingSamples,
                                size);
@@ -128,6 +134,9 @@ namespace hrm
 
     void Controller::setZeroPadSize(int size)
     {
+        if (!fft)
+            return;
+
         fft->setSampleSettings(fft->getProperties().numberOfSamples,
                                size,
                                fft->getProperties().slidingWindow);
@@ -135,16 +144,25 @@ namespace hrm
 
     void Controller::setUseFilter(bool status)
     {
+        if (!fft)
+            return;
+
         fft->setUseFilter(status);
     }
 
     void Controller::setUseScaling(bool status)
     {
+        if (!fft)
+            return;
+
         fft->setUseScaling(status);
     }
 
     void Controller::setUseWindowFunction(bool status)
     {
+        if (!fft)
+            return;
+
         fft->setUseWindowFunction(status);
     }
 
