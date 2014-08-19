@@ -21,6 +21,7 @@ namespace hrm
         fftSamplesPerSegmentEdit->setText(QString::number(properties.numberOfSamples));
         fftZeroPaddingEdit->setText(QString::number(properties.zeroPaddingSamples));
         fftSegmentDurationEdit->setText(QString::number(properties.segmentDuration));
+        fftSlidingWindowEdit->setText(QString::number(properties.slidingWindow));
 
         QString str;
 
@@ -43,7 +44,6 @@ namespace hrm
         minValEdit->setText(settings.min);
         sampleIntervalEdit->setText(settings.sampleInterval);
         resolutionEdit->setText(settings.resolution);
-        // TODO: setSampleIntervalEdit->setText(settings.sampleInterval);
     }
 
     void SettingsDialog::clearFrequencyDataEdit()
