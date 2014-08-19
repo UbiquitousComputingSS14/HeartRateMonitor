@@ -46,6 +46,16 @@ namespace hrm
              */
             void zeroPad();
 
+            /**
+             * Normalizes the fftw_complex array with its mean.
+             */
+            void normalize();
+
+            /**
+             * @return Mean value of the vector buffer.
+             */
+            double getMean();
+
         public:
             /**
              * If (effectiveSize <= windowSize) => All data is

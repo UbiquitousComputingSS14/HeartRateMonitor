@@ -70,7 +70,8 @@ namespace hrm
              * Multiplicates the time domain input signal with a
              * window function (to weak the leakage effect).
              */
-            void windowFunction();
+            void windowFunction_Hamming();
+            void windowFunction_Hanning();
 
             /**
              * Ideal filter to remove unwanted frequencies.
@@ -96,16 +97,6 @@ namespace hrm
              * (Number of samples used for FFT)
              */
             void applySampleSettings();
-
-            /**
-             * Checks if the given index from a frequency spectrum is
-             * a required frequency based on the min and max frequency
-             * variable.
-             *
-             * @retval true The frequency is required
-             * @retval false The frequency is not required (can be removed)
-             */
-            bool isRequiredFrequency(int index);
 
         public:
             FFT(double sampleInterval);
@@ -136,6 +127,16 @@ namespace hrm
             int getPeak();
 
             double indexToFrequency(int i);
+
+            /**
+            * Checks if the given index from a frequency spectrum is
+            * a required frequency based on the min and max frequency
+            * variable.
+            *
+            * @retval true The frequency is required
+            * @retval false The frequency is not required (can be removed)
+            */
+            bool isRequiredFrequency(int index);
 
             /**
              * @return Input array held by FFTBuffer.

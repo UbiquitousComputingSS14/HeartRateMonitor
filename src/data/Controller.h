@@ -71,6 +71,7 @@ namespace hrm
             void setUseFilter(bool status);
             void setUseWindowFunction(bool status);
             void setUseScaling(bool status);
+            bool isRequiredFrequency(int index);
     };
 
 }

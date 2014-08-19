@@ -1,5 +1,7 @@
 #include "FFTBuffer.h"
 
+#include <numeric>
+
 namespace hrm
 {
 
@@ -19,6 +21,8 @@ namespace hrm
 
         if (data.size() == (unsigned int) effectiveSize) {
             copyToDataOut();
+
+            normalize();
 
             // Zero pad the other values.
             zeroPad();
@@ -47,6 +51,15 @@ namespace hrm
             dataOut[i][1] = 0;
 
             ++i;
+        }
+    }
+
+    void FFTBuffer::normalize()
+    {
+        double mean = getMean();
+
+        for (int i = 0; i < effectiveSize; ++i) {
+            dataOut[i][0] = dataOut[i][0] - mean;
         }
     }
 
@@ -114,6 +127,14 @@ namespace hrm
     int FFTBuffer::getZeroPadSize()
     {
         return zeroPadSize;
+    }
+
+    double FFTBuffer::getMean()
+    {
+        double sum = std::accumulate(data.begin(), data.end(), 0.0);
+        double mean = sum / data.size();
+
+        return mean;
     }
 
 }

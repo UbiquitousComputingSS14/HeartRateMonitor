@@ -182,6 +182,9 @@ namespace hrm
 
         // Plot
         for (int i = 1; i <= properties.totalSamples / 2; ++i) {
+            if (!controller.isRequiredFrequency(i))
+                continue;
+
             dataVector.clear();
 
             dataVector.append(magnitude[i-1]);

@@ -40,7 +40,7 @@ namespace hrm
 
             // Functions for input time domain.
             if (useWindowFunction)
-                windowFunction();
+                windowFunction_Hamming();
 
             fftw_execute(plan);
 
@@ -59,11 +59,20 @@ namespace hrm
         return false;
     }
 
-    void FFT::windowFunction()
+    void FFT::windowFunction_Hamming()
     {
         for (int i = 0; i < properties.numberOfSamples; ++i) {
             // Hamming-window
             double windowValue = 0.54 - 0.46 * cos((2 * M_PI * i) / properties.numberOfSamples);
+            buffer.update(i, buffer.getValue(i) * windowValue);
+        }
+    }
+
+    void FFT::windowFunction_Hanning()
+    {
+        for (int i = 0; i < properties.numberOfSamples; ++i) {
+            // Hamming-window
+            double windowValue = 0.5 - 0.5 * cos((2 * M_PI * i) / properties.numberOfSamples);
             buffer.update(i, buffer.getValue(i) * windowValue);
         }
     }

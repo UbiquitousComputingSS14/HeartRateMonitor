@@ -148,4 +148,9 @@ namespace hrm
         fft->setUseWindowFunction(status);
     }
 
+    bool Controller::isRequiredFrequency(int index)
+    {
+        return fft->isRequiredFrequency(index);
+    }
+
 }
